@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import activitiesData from '@/data/atividades.json';
+import { parse, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export interface Activity {
   'DATA/HORA INÍCIO': string;
@@ -48,9 +50,23 @@ export interface Activity {
   'Validação': string;
 }
 
+const formatBrazilianDate = (dateStr: string): string => {
+  try {
+    // Formato original: "3/1/25 0:00" ou "06/1/25 0:00"
+    const parsed = parse(dateStr, 'M/d/yy H:mm', new Date());
+    return format(parsed, 'dd/MM/yyyy', { locale: ptBR });
+  } catch (error) {
+    return dateStr;
+  }
+};
+
 export const useActivitiesData = () => {
   const data = useMemo(() => {
-    return activitiesData as Activity[];
+    return (activitiesData as Activity[]).map(activity => ({
+      ...activity,
+      'DATA/HORA INÍCIO': formatBrazilianDate(activity['DATA/HORA INÍCIO']),
+      'DATA/HORA \nFIM': formatBrazilianDate(activity['DATA/HORA \nFIM'])
+    }));
   }, []);
 
   const equipmentFields = useMemo(() => [
@@ -194,11 +210,18 @@ export const useActivitiesData = () => {
     };
   }, [data]);
 
+  const getActivitiesByEquipment = (equipmentName: string) => {
+    return data.filter(activity => {
+      return activity[equipmentName as keyof Activity] === '1';
+    });
+  };
+
   return {
     data,
     equipmentData,
     globalActivities,
     globalByMonth,
-    annualStats
+    annualStats,
+    getActivitiesByEquipment
   };
 };

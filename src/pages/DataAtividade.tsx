@@ -114,8 +114,14 @@ const DataAtividade = () => {
               </thead>
               <tbody>
                 {equipmentData.map((item, index) => (
-                  <tr key={index} className="border-b border-border hover:bg-muted/50 transition-colors">
-                    <td className="py-3 px-4 text-foreground">{item.name}</td>
+                  <tr 
+                    key={index} 
+                    className="border-b border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/equipamento/${encodeURIComponent(item.name)}`)}
+                  >
+                    <td className="py-3 px-4 text-foreground hover:text-primary transition-colors font-medium">
+                      {item.name}
+                    </td>
                     <td className="py-3 px-4 text-right font-semibold text-primary">{item.total}</td>
                     <td className="py-3 px-4 text-right text-muted-foreground">{item.percentage.toFixed(1)}%</td>
                     <td className="py-3 px-4 text-right">
