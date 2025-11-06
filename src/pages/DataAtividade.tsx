@@ -3,20 +3,11 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { useActivitiesData } from "@/hooks/useActivitiesData";
 
 const DataAtividade = () => {
   const navigate = useNavigate();
-
-  // Mock data for equipment failures
-  const equipmentData = [
-    { name: "Servidor Principal", total: 45, percentage: 22.5 },
-    { name: "Switch de Rede", total: 38, percentage: 19.0 },
-    { name: "Storage", total: 32, percentage: 16.0 },
-    { name: "Encoder", total: 28, percentage: 14.0 },
-    { name: "Multiplexador", total: 24, percentage: 12.0 },
-    { name: "Receptor", total: 18, percentage: 9.0 },
-    { name: "Transmissor", total: 15, percentage: 7.5 },
-  ];
+  const { equipmentData } = useActivitiesData();
 
   const totalOccurrences = equipmentData.reduce((sum, item) => sum + item.total, 0);
 

@@ -3,23 +3,16 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle, XCircle, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useActivitiesData } from "@/hooks/useActivitiesData";
 
 const AtividadesGlobal = () => {
   const navigate = useNavigate();
+  const { globalActivities, globalByMonth } = useActivitiesData();
 
-  // Mock data for global activities
-  const monthlyData = [
-    { month: "Jan", total: 45, success: 42, failed: 3 },
-    { month: "Fev", total: 52, success: 48, failed: 4 },
-    { month: "Mar", total: 48, success: 46, failed: 2 },
-    { month: "Abr", total: 55, success: 51, failed: 4 },
-    { month: "Mai", total: 61, success: 58, failed: 3 },
-    { month: "Jun", total: 58, success: 55, failed: 3 },
-  ];
-
-  const totalActivities = monthlyData.reduce((sum, item) => sum + item.total, 0);
-  const totalSuccess = monthlyData.reduce((sum, item) => sum + item.success, 0);
-  const successRate = ((totalSuccess / totalActivities) * 100).toFixed(1);
+  const monthlyData = globalByMonth;
+  const totalActivities = globalActivities.length;
+  const totalSuccess = globalActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
+  const successRate = totalActivities > 0 ? ((totalSuccess / totalActivities) * 100).toFixed(1) : '0';
 
   return (
     <div className="min-h-screen bg-background">
@@ -171,24 +164,18 @@ const AtividadesGlobal = () => {
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { date: "15/06/2025", area: "Marketing", executor: "João Silva", status: "success" },
-                  { date: "14/06/2025", area: "Engenharia", executor: "Maria Santos", status: "success" },
-                  { date: "14/06/2025", area: "Plataforma", executor: "Pedro Costa", status: "failed" },
-                  { date: "13/06/2025", area: "Marketing", executor: "Ana Lima", status: "success" },
-                  { date: "13/06/2025", area: "Engenharia", executor: "Carlos Souza", status: "success" },
-                ].map((activity, index) => (
+                {globalActivities.slice(0, 10).map((activity, index) => (
                   <tr key={index} className="border-b border-border hover:bg-muted/50 transition-colors">
-                    <td className="py-3 px-4 text-foreground">{activity.date}</td>
-                    <td className="py-3 px-4 text-foreground">{activity.area}</td>
-                    <td className="py-3 px-4 text-foreground">{activity.executor}</td>
+                    <td className="py-3 px-4 text-foreground">{activity['DATA/HORA INÍCIO']}</td>
+                    <td className="py-3 px-4 text-foreground">{activity['Área Solicitante']}</td>
+                    <td className="py-3 px-4 text-foreground">{activity['Executor da Atividade']}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
-                        activity.status === "success" 
+                        activity.STATUS === "REALIZADA COM SUCESSO" 
                           ? "bg-green-100 text-green-700" 
                           : "bg-red-100 text-red-700"
                       }`}>
-                        {activity.status === "success" ? (
+                        {activity.STATUS === "REALIZADA COM SUCESSO" ? (
                           <>
                             <CheckCircle className="w-3 h-3" />
                             Realizada com Sucesso
@@ -196,7 +183,7 @@ const AtividadesGlobal = () => {
                         ) : (
                           <>
                             <XCircle className="w-3 h-3" />
-                            Com Falhas
+                            {activity.STATUS}
                           </>
                         )}
                       </span>

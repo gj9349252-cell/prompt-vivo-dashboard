@@ -3,30 +3,17 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useActivitiesData } from "@/hooks/useActivitiesData";
 
 const ConsolidadoAnual = () => {
   const navigate = useNavigate();
+  const { annualStats } = useActivitiesData();
 
-  // Mock data for annual consolidated view
-  const annualData = [
-    { month: "Jan", successRate: 93.3, activities: 45 },
-    { month: "Fev", successRate: 92.3, activities: 52 },
-    { month: "Mar", successRate: 95.8, activities: 48 },
-    { month: "Abr", successRate: 92.7, activities: 55 },
-    { month: "Mai", successRate: 95.1, activities: 61 },
-    { month: "Jun", successRate: 94.8, activities: 58 },
-    { month: "Jul", successRate: 91.5, activities: 47 },
-    { month: "Ago", successRate: 93.9, activities: 54 },
-    { month: "Set", successRate: 96.2, activities: 52 },
-    { month: "Out", successRate: 94.1, activities: 49 },
-    { month: "Nov", successRate: 95.5, activities: 56 },
-    { month: "Dez", successRate: 93.8, activities: 51 },
-  ];
-
-  const averageSuccessRate = (annualData.reduce((sum, item) => sum + item.successRate, 0) / annualData.length).toFixed(1);
-  const totalActivities = annualData.reduce((sum, item) => sum + item.activities, 0);
-  const bestMonth = annualData.reduce((prev, current) => (prev.successRate > current.successRate) ? prev : current);
-  const worstMonth = annualData.reduce((prev, current) => (prev.successRate < current.successRate) ? prev : current);
+  const annualData = annualStats.monthlyData;
+  const totalActivities = annualStats.totalActivities;
+  const averageSuccessRate = annualStats.avgSuccessRate.toFixed(1);
+  const bestMonth = annualStats.bestMonth;
+  const worstMonth = annualStats.worstMonth;
 
   return (
     <div className="min-h-screen bg-background">
@@ -168,7 +155,7 @@ const ConsolidadoAnual = () => {
               />
               <Area 
                 type="monotone" 
-                dataKey="activities" 
+                dataKey="total" 
                 stroke="hsl(var(--primary))" 
                 strokeWidth={2}
                 fill="url(#colorActivities)" 
