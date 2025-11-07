@@ -211,7 +211,7 @@ export const useActivitiesData = () => {
   }, [data]);
 
   const tasksStats = useMemo(() => {
-    const tasks = data.filter(activity => activity['TAREFA (TASK)'] === '1');
+    const tasks = data.filter(activity => activity['Área Solicitante'] === 'FRONT OFFICE');
     
     const monthMap: Record<string, { success: number; partial: number; rollback: number; canceled: number; total: number }> = {};
 
