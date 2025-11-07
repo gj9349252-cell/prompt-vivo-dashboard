@@ -226,14 +226,14 @@ export const useActivitiesData = () => {
 
       monthMap[key].total++;
       
-      const status = activity.STATUS.toUpperCase();
-      if (status.includes('SUCESSO')) {
+      const status = activity.STATUS;
+      if (status === 'REALIZADA COM SUCESSO') {
         monthMap[key].success++;
-      } else if (status.includes('PARCIALMENTE')) {
+      } else if (status === 'REALIZADA PARCIALMENTE') {
         monthMap[key].partial++;
-      } else if (status.includes('ROLLBACK')) {
+      } else if (status === 'REALIZADO ROLLBACK') {
         monthMap[key].rollback++;
-      } else if (status.includes('CANCELADA') || status.includes('NÃO EXECUTADA')) {
+      } else if (status === 'CANCELADA' || status === 'NÃO EXECUTADA') {
         monthMap[key].canceled++;
       }
     });
@@ -257,10 +257,10 @@ export const useActivitiesData = () => {
       });
 
     const totalTasks = tasks.length;
-    const totalSuccess = tasks.filter(a => a.STATUS.toUpperCase().includes('SUCESSO')).length;
-    const totalPartial = tasks.filter(a => a.STATUS.toUpperCase().includes('PARCIALMENTE')).length;
-    const totalRollback = tasks.filter(a => a.STATUS.toUpperCase().includes('ROLLBACK')).length;
-    const totalCanceled = tasks.filter(a => a.STATUS.toUpperCase().includes('CANCELADA') || a.STATUS.toUpperCase().includes('NÃO EXECUTADA')).length;
+    const totalSuccess = tasks.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
+    const totalPartial = tasks.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length;
+    const totalRollback = tasks.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length;
+    const totalCanceled = tasks.filter(a => a.STATUS === 'CANCELADA' || a.STATUS === 'NÃO EXECUTADA').length;
 
     return {
       totalTasks,
