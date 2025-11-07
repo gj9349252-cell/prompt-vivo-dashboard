@@ -25,8 +25,8 @@ const TasksFrontOffice = () => {
           </p>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {/* KPIs - Linha 1 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-card/80 backdrop-blur border-primary/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground text-center">
@@ -40,54 +40,109 @@ const TasksFrontOffice = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/80 backdrop-blur border-primary/20">
+          <Card className="bg-card/80 backdrop-blur border-green-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground text-center">
                 Realizadas com Sucesso
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-primary text-center">
+              <div className="text-4xl font-bold text-green-600 text-center">
                 {tasksStats.totalSuccess}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/80 backdrop-blur border-primary/20">
+          <Card className="bg-card/80 backdrop-blur border-yellow-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground text-center">
                 Realizadas Parcialmente
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-primary text-center">
+              <div className="text-4xl font-bold text-yellow-600 text-center">
                 {tasksStats.totalPartial}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/80 backdrop-blur border-primary/20">
+          <Card className="bg-card/80 backdrop-blur border-orange-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground text-center">
                 Realizado Rollback
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-primary text-center">
+              <div className="text-4xl font-bold text-orange-600 text-center">
                 {tasksStats.totalRollback}
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          <Card className="bg-card/80 backdrop-blur border-primary/20">
+        {/* KPIs - Linha 2 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <Card className="bg-card/80 backdrop-blur border-blue-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground text-center">
-                Cancelados / Não executados
+                Autorizada
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-primary text-center">
+              <div className="text-4xl font-bold text-blue-600 text-center">
+                {tasksStats.totalAuthorized}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/80 backdrop-blur border-red-500/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground text-center">
+                Cancelada
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-red-600 text-center">
                 {tasksStats.totalCanceled}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/80 backdrop-blur border-gray-500/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground text-center">
+                Não Executado
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-gray-600 text-center">
+                {tasksStats.totalNotExecuted}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/80 backdrop-blur border-purple-500/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground text-center">
+                Pendente Documentação
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-purple-600 text-center">
+                {tasksStats.totalPendingDoc}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/80 backdrop-blur border-teal-500/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground text-center">
+                WO Executada sem TP
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-teal-600 text-center">
+                {tasksStats.totalWoExecuted}
               </div>
             </CardContent>
           </Card>
@@ -143,14 +198,17 @@ const TasksFrontOffice = () => {
               <div className="overflow-auto max-h-[450px]">
                 <Table>
                   <TableHeader className="sticky top-0 bg-primary z-10">
-                    <TableRow>
+                  <TableRow>
                       <TableHead className="text-primary-foreground font-bold"></TableHead>
                       <TableHead className="text-primary-foreground font-bold text-center">Sucesso</TableHead>
                       <TableHead className="text-primary-foreground font-bold text-center">Parcial</TableHead>
                       <TableHead className="text-primary-foreground font-bold text-center">Rollback</TableHead>
-                      <TableHead className="text-primary-foreground font-bold text-center">Cancelado</TableHead>
-                      <TableHead className="text-primary-foreground font-bold text-center">%</TableHead>
-                      <TableHead className="text-primary-foreground font-bold text-center">Total Executado</TableHead>
+                      <TableHead className="text-primary-foreground font-bold text-center">Autoriz.</TableHead>
+                      <TableHead className="text-primary-foreground font-bold text-center">Cancel.</TableHead>
+                      <TableHead className="text-primary-foreground font-bold text-center">Não Exec</TableHead>
+                      <TableHead className="text-primary-foreground font-bold text-center">Pend Doc</TableHead>
+                      <TableHead className="text-primary-foreground font-bold text-center">WO s/TP</TableHead>
+                      <TableHead className="text-primary-foreground font-bold text-center">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -160,9 +218,12 @@ const TasksFrontOffice = () => {
                         <TableCell className="text-center">{month.success}</TableCell>
                         <TableCell className="text-center">{month.partial}</TableCell>
                         <TableCell className="text-center">{month.rollback}</TableCell>
+                        <TableCell className="text-center">{month.authorized}</TableCell>
                         <TableCell className="text-center">{month.canceled}</TableCell>
-                        <TableCell className="text-center">{month.canceledPercentage.toFixed(0)}%</TableCell>
-                        <TableCell className="text-center font-semibold">{month.executed}</TableCell>
+                        <TableCell className="text-center">{month.notExecuted}</TableCell>
+                        <TableCell className="text-center">{month.pendingDoc}</TableCell>
+                        <TableCell className="text-center">{month.woExecuted}</TableCell>
+                        <TableCell className="text-center font-semibold">{month.total}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

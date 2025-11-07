@@ -213,7 +213,17 @@ export const useActivitiesData = () => {
   const tasksStats = useMemo(() => {
     const tasks = data.filter(activity => activity['Área Solicitante'] === 'FRONT OFFICE');
     
-    const monthMap: Record<string, { success: number; partial: number; rollback: number; canceled: number; total: number }> = {};
+    const monthMap: Record<string, { 
+      success: number; 
+      partial: number; 
+      rollback: number; 
+      authorized: number;
+      canceled: number; 
+      notExecuted: number;
+      pendingDoc: number;
+      woExecuted: number;
+      total: number 
+    }> = {};
 
     tasks.forEach(activity => {
       const month = activity['MÊS'];
@@ -221,7 +231,17 @@ export const useActivitiesData = () => {
       const key = `${year}-${month.padStart(2, '0')}`;
 
       if (!monthMap[key]) {
-        monthMap[key] = { success: 0, partial: 0, rollback: 0, canceled: 0, total: 0 };
+        monthMap[key] = { 
+          success: 0, 
+          partial: 0, 
+          rollback: 0, 
+          authorized: 0,
+          canceled: 0, 
+          notExecuted: 0,
+          pendingDoc: 0,
+          woExecuted: 0,
+          total: 0 
+        };
       }
 
       monthMap[key].total++;
@@ -233,8 +253,16 @@ export const useActivitiesData = () => {
         monthMap[key].partial++;
       } else if (status === 'REALIZADO ROLLBACK') {
         monthMap[key].rollback++;
-      } else if (status === 'CANCELADA' || status === 'NÃO EXECUTADA') {
+      } else if (status === 'AUTORIZADA') {
+        monthMap[key].authorized++;
+      } else if (status === 'CANCELADA') {
         monthMap[key].canceled++;
+      } else if (status === 'NÃO EXECUTADO') {
+        monthMap[key].notExecuted++;
+      } else if (status === 'PENDENTE DOCUMENTAÇÃO') {
+        monthMap[key].pendingDoc++;
+      } else if (status === 'WO EXECUTADA SEM TP') {
+        monthMap[key].woExecuted++;
       }
     });
 
@@ -243,13 +271,17 @@ export const useActivitiesData = () => {
       .map(([key, stats]) => {
         const [year, month] = key.split('-');
         const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-        const executed = stats.success + stats.partial + stats.rollback;
+        const executed = stats.success + stats.partial + stats.rollback + stats.authorized + stats.woExecuted;
         return {
           month: monthNames[parseInt(month) - 1],
           success: stats.success,
           partial: stats.partial,
           rollback: stats.rollback,
+          authorized: stats.authorized,
           canceled: stats.canceled,
+          notExecuted: stats.notExecuted,
+          pendingDoc: stats.pendingDoc,
+          woExecuted: stats.woExecuted,
           total: stats.total,
           executed,
           canceledPercentage: executed > 0 ? (stats.canceled / stats.total) * 100 : 0
@@ -260,14 +292,22 @@ export const useActivitiesData = () => {
     const totalSuccess = tasks.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
     const totalPartial = tasks.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length;
     const totalRollback = tasks.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length;
-    const totalCanceled = tasks.filter(a => a.STATUS === 'CANCELADA' || a.STATUS === 'NÃO EXECUTADA').length;
+    const totalAuthorized = tasks.filter(a => a.STATUS === 'AUTORIZADA').length;
+    const totalCanceled = tasks.filter(a => a.STATUS === 'CANCELADA').length;
+    const totalNotExecuted = tasks.filter(a => a.STATUS === 'NÃO EXECUTADO').length;
+    const totalPendingDoc = tasks.filter(a => a.STATUS === 'PENDENTE DOCUMENTAÇÃO').length;
+    const totalWoExecuted = tasks.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length;
 
     return {
       totalTasks,
       totalSuccess,
       totalPartial,
       totalRollback,
+      totalAuthorized,
       totalCanceled,
+      totalNotExecuted,
+      totalPendingDoc,
+      totalWoExecuted,
       monthlyData
     };
   }, [data]);
