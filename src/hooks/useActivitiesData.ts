@@ -210,6 +210,68 @@ export const useActivitiesData = () => {
     };
   }, [data]);
 
+  const tasksStats = useMemo(() => {
+    const tasks = data.filter(activity => activity['TAREFA (TASK)'] === '1');
+    
+    const monthMap: Record<string, { success: number; partial: number; rollback: number; canceled: number; total: number }> = {};
+
+    tasks.forEach(activity => {
+      const month = activity['MÊS'];
+      const year = activity['ANO'];
+      const key = `${year}-${month.padStart(2, '0')}`;
+
+      if (!monthMap[key]) {
+        monthMap[key] = { success: 0, partial: 0, rollback: 0, canceled: 0, total: 0 };
+      }
+
+      monthMap[key].total++;
+      
+      const status = activity.STATUS.toUpperCase();
+      if (status.includes('SUCESSO')) {
+        monthMap[key].success++;
+      } else if (status.includes('PARCIALMENTE')) {
+        monthMap[key].partial++;
+      } else if (status.includes('ROLLBACK')) {
+        monthMap[key].rollback++;
+      } else if (status.includes('CANCELADA') || status.includes('NÃO EXECUTADA')) {
+        monthMap[key].canceled++;
+      }
+    });
+
+    const monthlyData = Object.entries(monthMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, stats]) => {
+        const [year, month] = key.split('-');
+        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const executed = stats.success + stats.partial + stats.rollback;
+        return {
+          month: monthNames[parseInt(month) - 1],
+          success: stats.success,
+          partial: stats.partial,
+          rollback: stats.rollback,
+          canceled: stats.canceled,
+          total: stats.total,
+          executed,
+          canceledPercentage: executed > 0 ? (stats.canceled / stats.total) * 100 : 0
+        };
+      });
+
+    const totalTasks = tasks.length;
+    const totalSuccess = tasks.filter(a => a.STATUS.toUpperCase().includes('SUCESSO')).length;
+    const totalPartial = tasks.filter(a => a.STATUS.toUpperCase().includes('PARCIALMENTE')).length;
+    const totalRollback = tasks.filter(a => a.STATUS.toUpperCase().includes('ROLLBACK')).length;
+    const totalCanceled = tasks.filter(a => a.STATUS.toUpperCase().includes('CANCELADA') || a.STATUS.toUpperCase().includes('NÃO EXECUTADA')).length;
+
+    return {
+      totalTasks,
+      totalSuccess,
+      totalPartial,
+      totalRollback,
+      totalCanceled,
+      monthlyData
+    };
+  }, [data]);
+
   const getActivitiesByEquipment = (equipmentName: string) => {
     return data.filter(activity => {
       return activity[equipmentName as keyof Activity] === '1';
@@ -222,6 +284,7 @@ export const useActivitiesData = () => {
     globalActivities,
     globalByMonth,
     annualStats,
+    tasksStats,
     getActivitiesByEquipment
   };
 };

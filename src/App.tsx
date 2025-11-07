@@ -8,6 +8,7 @@ import DataAtividade from "./pages/DataAtividade";
 import EquipamentoDetalhes from "./pages/EquipamentoDetalhes";
 import AtividadesGlobal from "./pages/AtividadesGlobal";
 import ConsolidadoAnual from "./pages/ConsolidadoAnual";
+import TasksFrontOffice from "./pages/TasksFrontOffice";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/equipamento/:equipmentName" element={<EquipamentoDetalhes />} />
           <Route path="/atividades-global" element={<AtividadesGlobal />} />
           <Route path="/consolidado-anual" element={<ConsolidadoAnual />} />
+          <Route path="/tasks-front-office" element={<TasksFrontOffice />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -6,7 +6,8 @@ import {
   Megaphone, 
   Settings, 
   Server, 
-  TrendingUp 
+  TrendingUp,
+  CheckSquare
 } from "lucide-react";
 
 const Index = () => {
@@ -26,6 +27,13 @@ const Index = () => {
       icon: Globe,
       route: "/atividades-global",
       color: "from-primary to-primary-dark"
+    },
+    {
+      title: "FRONT OFFICE (TASK)",
+      description: "Consolidado de TASKs - Front Office",
+      icon: CheckSquare,
+      route: "/tasks-front-office",
+      color: "from-pink-500 to-red-500"
     },
     {
       title: "ATIVIDADES MARKETING",
