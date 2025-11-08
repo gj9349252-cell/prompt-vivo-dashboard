@@ -1,17 +1,35 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Clock, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
+import { useState, useMemo } from "react";
+import { Input } from "@/components/ui/input";
 
 const AtividadesGlobal = () => {
   const navigate = useNavigate();
   const { globalActivities, globalByMonth } = useActivitiesData();
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const filteredActivities = useMemo(() => {
+    if (!startDate && !endDate) return globalActivities;
+
+    return globalActivities.filter(activity => {
+      const activityDate = activity['DATA/HORA INÍCIO'];
+      const [day, month, year] = activityDate.split('/');
+      const activityFullDate = `20${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+
+      if (startDate && activityFullDate < startDate) return false;
+      if (endDate && activityFullDate > endDate) return false;
+      return true;
+    });
+  }, [globalActivities, startDate, endDate]);
 
   const monthlyData = globalByMonth;
-  const totalActivities = globalActivities.length;
-  const totalSuccess = globalActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
+  const totalActivities = filteredActivities.length;
+  const totalSuccess = filteredActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
   const successRate = totalActivities > 0 ? ((totalSuccess / totalActivities) * 100).toFixed(1) : '0';
 
   return (
@@ -35,6 +53,44 @@ const AtividadesGlobal = () => {
       </header>
 
       <main className="container mx-auto px-6 py-8">
+        {/* Date Filter */}
+        <Card className="p-6 shadow-card mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <Filter className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Filtrar por Período</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Data Início</label>
+              <Input 
+                type="date" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Data Fim</label>
+              <Input 
+                type="date" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+          {(startDate || endDate) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => { setStartDate(""); setEndDate(""); }}
+              className="mt-4"
+            >
+              Limpar Filtros
+            </Button>
+          )}
+        </Card>
+
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="p-6 shadow-card">
@@ -151,24 +207,40 @@ const AtividadesGlobal = () => {
         {/* Recent Activities Table */}
         <Card className="p-6 shadow-card">
           <h2 className="text-xl font-bold text-foreground mb-6">
-            Atividades Recentes
+            Detalhes das Atividades Recentes
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Data</th>
+                  <th className="text-left py-3 px-4 font-semibold text-foreground">Data Início</th>
+                  <th className="text-left py-3 px-4 font-semibold text-foreground">Data Fim</th>
                   <th className="text-left py-3 px-4 font-semibold text-foreground">Área</th>
                   <th className="text-left py-3 px-4 font-semibold text-foreground">Executor</th>
+                  <th className="text-left py-3 px-4 font-semibold text-foreground">Evento</th>
+                  <th className="text-left py-3 px-4 font-semibold text-foreground">Severidade</th>
                   <th className="text-left py-3 px-4 font-semibold text-foreground">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {globalActivities.slice(0, 10).map((activity, index) => (
+                {filteredActivities.slice(0, 50).map((activity, index) => (
                   <tr key={index} className="border-b border-border hover:bg-muted/50 transition-colors">
-                    <td className="py-3 px-4 text-foreground">{activity['DATA/HORA INÍCIO']}</td>
-                    <td className="py-3 px-4 text-foreground">{activity['Área Solicitante']}</td>
+                    <td className="py-3 px-4 text-foreground text-sm">{activity['DATA/HORA INÍCIO']}</td>
+                    <td className="py-3 px-4 text-foreground text-sm">{activity['DATA/HORA \nFIM']}</td>
+                    <td className="py-3 px-4 text-foreground font-medium">{activity['Área Solicitante']}</td>
                     <td className="py-3 px-4 text-foreground">{activity['Executor da Atividade']}</td>
+                    <td className="py-3 px-4 text-foreground text-sm">{activity['EVENTO']}</td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        activity.SEVERIDADE === 'ALTA' 
+                          ? "bg-red-100 text-red-700" 
+                          : activity.SEVERIDADE === 'MÉDIA'
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-green-100 text-green-700"
+                      }`}>
+                        {activity.SEVERIDADE}
+                      </span>
+                    </td>
                     <td className="py-3 px-4">
                       <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
                         activity.STATUS === "REALIZADA COM SUCESSO" 
@@ -178,7 +250,7 @@ const AtividadesGlobal = () => {
                         {activity.STATUS === "REALIZADA COM SUCESSO" ? (
                           <>
                             <CheckCircle className="w-3 h-3" />
-                            Realizada com Sucesso
+                            Sucesso
                           </>
                         ) : (
                           <>

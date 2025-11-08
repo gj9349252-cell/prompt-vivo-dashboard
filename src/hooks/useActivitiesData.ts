@@ -309,6 +309,18 @@ export const useActivitiesData = () => {
     });
   };
 
+  const engineeringActivities = useMemo(() => {
+    return data.filter(activity => activity['Área Solicitante'] === 'ENGENHARIA');
+  }, [data]);
+
+  const marketingActivities = useMemo(() => {
+    return data.filter(activity => activity['Área Solicitante'] === 'MARKETING' || activity['Área Solicitante'] === 'MKT CONTEÚDOS');
+  }, [data]);
+
+  const platformActivities = useMemo(() => {
+    return data.filter(activity => activity['Área Solicitante'] === 'PLATAFORMA' || activity['Área Solicitante'] === 'TV PLATAFORMA BR');
+  }, [data]);
+
   return {
     data,
     equipmentData,
@@ -316,6 +328,9 @@ export const useActivitiesData = () => {
     globalByMonth,
     annualStats,
     tasksStats,
-    getActivitiesByEquipment
+    getActivitiesByEquipment,
+    engineeringActivities,
+    marketingActivities,
+    platformActivities
   };
 };

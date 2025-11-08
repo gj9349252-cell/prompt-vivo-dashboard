@@ -9,6 +9,9 @@ import EquipamentoDetalhes from "./pages/EquipamentoDetalhes";
 import AtividadesGlobal from "./pages/AtividadesGlobal";
 import ConsolidadoAnual from "./pages/ConsolidadoAnual";
 import TasksFrontOffice from "./pages/TasksFrontOffice";
+import AtividadesEngenharia from "./pages/AtividadesEngenharia";
+import AtividadesMarketing from "./pages/AtividadesMarketing";
+import AtividadesPlataforma from "./pages/AtividadesPlataforma";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +29,9 @@ const App = () => (
           <Route path="/atividades-global" element={<AtividadesGlobal />} />
           <Route path="/consolidado-anual" element={<ConsolidadoAnual />} />
           <Route path="/tasks-front-office" element={<TasksFrontOffice />} />
+          <Route path="/atividades-engenharia" element={<AtividadesEngenharia />} />
+          <Route path="/atividades-marketing" element={<AtividadesMarketing />} />
+          <Route path="/atividades-plataforma" element={<AtividadesPlataforma />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
