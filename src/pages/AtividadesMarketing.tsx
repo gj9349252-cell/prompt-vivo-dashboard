@@ -1,209 +1,289 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Megaphone, CheckCircle, XCircle, Clock } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
+import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+// Live Clock Component
+const LiveClock = () => {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="text-right">
+      <div className="text-sm font-semibold text-white">
+        {format(time, "dd/MM/yy HH:mm", { locale: ptBR })}
+      </div>
+    </div>
+  );
+};
+
+// Equipment Card Component
+const EquipmentCard = ({ title, count }: { title: string; count: number | string }) => {
+  return (
+    <Card className="p-4 bg-white border-purple-200 shadow-sm hover:shadow-md transition-shadow">
+      <div className="text-center">
+        <p className="text-xs font-medium text-muted-foreground mb-1">{title}</p>
+        <p className="text-2xl font-bold text-purple-600">{count}</p>
+      </div>
+    </Card>
+  );
+};
+
+// Monthly Stats Table Component
+const MonthlyStatsTable = ({ monthlyData }: { monthlyData: Record<string, any> }) => {
+  const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="bg-purple-600 text-white">
+            <th className="py-2 px-2 text-center font-semibold border border-purple-500">Mês</th>
+            <th className="py-2 px-2 text-center font-semibold border border-purple-500">Sucesso</th>
+            <th className="py-2 px-2 text-center font-semibold border border-purple-500">Parcial</th>
+            <th className="py-2 px-2 text-center font-semibold border border-purple-500">Rollback</th>
+            <th className="py-2 px-2 text-center font-semibold border border-purple-500">Cancelado</th>
+            <th className="py-2 px-2 text-center font-semibold border border-purple-500">Não Exec.</th>
+            <th className="py-2 px-2 text-center font-semibold border border-purple-500">Total</th>
+            <th className="py-2 px-2 text-center font-semibold border border-purple-500">% Cancel.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {months.map((month, index) => {
+            const data = monthlyData[month];
+            const cancelPercentage = data.total > 0 
+              ? ((data.canceled / data.total) * 100).toFixed(1)
+              : '0.0';
+            
+            return (
+              <tr key={month} className={index % 2 === 0 ? 'bg-purple-50' : 'bg-white'}>
+                <td className="py-2 px-2 text-left font-medium border border-purple-200">{month}</td>
+                <td className="py-2 px-2 text-center border border-purple-200">{data.success}</td>
+                <td className="py-2 px-2 text-center border border-purple-200">{data.partial}</td>
+                <td className="py-2 px-2 text-center border border-purple-200">{data.rollback}</td>
+                <td className="py-2 px-2 text-center border border-purple-200">{data.canceled}</td>
+                <td className="py-2 px-2 text-center border border-purple-200">{data.notExecuted}</td>
+                <td className="py-2 px-2 text-center font-bold border border-purple-200">{data.total}</td>
+                <td className="py-2 px-2 text-center border border-purple-200">{cancelPercentage}%</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
 const AtividadesMarketing = () => {
   const navigate = useNavigate();
-  const { marketingActivities } = useActivitiesData();
+  const { marketingStats } = useActivitiesData();
 
-  const totalActivities = marketingActivities.length;
-  const totalSuccess = marketingActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
-  const totalFailed = totalActivities - totalSuccess;
-  const successRate = totalActivities > 0 ? ((totalSuccess / totalActivities) * 100).toFixed(1) : '0';
-
-  // Agrupa por mês
-  const monthlyStats = marketingActivities.reduce((acc, activity) => {
-    const month = activity['MÊS'];
-    const year = activity['ANO'];
-    const key = `${year}-${month.padStart(2, '0')}`;
+  // Prepare chart data
+  const chartData = Object.entries(marketingStats.monthlyData).map(([month, data]) => {
+    const cancelPercentage = data.total > 0 
+      ? parseFloat(((data.canceled / data.total) * 100).toFixed(1))
+      : 0;
     
-    if (!acc[key]) {
-      acc[key] = { success: 0, failed: 0, total: 0 };
-    }
-    
-    acc[key].total++;
-    if (activity.STATUS === 'REALIZADA COM SUCESSO') {
-      acc[key].success++;
-    } else {
-      acc[key].failed++;
-    }
-    
-    return acc;
-  }, {} as Record<string, { success: number; failed: number; total: number }>);
-
-  const monthlyData = Object.entries(monthlyStats)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, stats]) => {
-      const [year, month] = key.split('-');
-      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      return {
-        month: monthNames[parseInt(month) - 1],
-        success: stats.success,
-        failed: stats.failed,
-        total: stats.total
-      };
-    });
+    return {
+      month: month.substring(0, 3), // Abreviar nome do mês
+      success: data.success,
+      partial: data.partial,
+      rollback: data.rollback,
+      cancelPercentage
+    };
+  });
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-accent to-orange-500 text-white py-6 px-6 shadow-elevated">
-        <div className="container mx-auto flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/")}
-            className="text-white hover:bg-white/20"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex items-center gap-3">
-            <Megaphone className="w-8 h-8" />
-            <div>
-              <h1 className="text-3xl font-bold">ATIVIDADES MARKETING</h1>
-              <p className="text-white/90 text-sm mt-1">Análise completa das atividades da área de Marketing</p>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white">
+      {/* Main Header */}
+      <header className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 text-white py-4 px-6 shadow-lg">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/")}
+                className="text-white hover:bg-white/20"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <h1 className="text-2xl font-bold">
+                Portal Atividades Programadas – Designer Máscaras (MKT CONTEÚDOS)
+              </h1>
             </div>
+            <LiveClock />
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Atividades</p>
-                <p className="text-3xl font-bold text-orange-600">{totalActivities}</p>
-              </div>
-            </div>
+      {/* Subtitle Bar */}
+      <div className="bg-purple-500 text-white py-2 px-6">
+        <div className="container mx-auto">
+          <p className="text-sm font-medium">
+            PORTAL ATIVIDADES PROGRAMADAS – PLATAFORMA DE TV – MKT CONTEÚDOS
+          </p>
+        </div>
+      </div>
+
+      <main className="container mx-auto px-6 py-6">
+        {/* Equipment Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
+          <EquipmentCard 
+            title="MKT Conteúdos" 
+            count={marketingStats.equipmentCounts['MKT Conteúdos']} 
+          />
+          <EquipmentCard 
+            title="Freeview" 
+            count={marketingStats.equipmentCounts['Freeview']} 
+          />
+          <EquipmentCard 
+            title="Evento Temporal" 
+            count={marketingStats.equipmentCounts['Evento Temporal']} 
+          />
+          <EquipmentCard 
+            title="Novos Canais" 
+            count={marketingStats.equipmentCounts['Novos Canais']} 
+          />
+          <EquipmentCard 
+            title="Novas Cidades" 
+            count={marketingStats.equipmentCounts['Novas Cidades']} 
+          />
+          <EquipmentCard 
+            title="Outras Config." 
+            count={marketingStats.equipmentCounts['Outras Configurações']} 
+          />
+          <EquipmentCard 
+            title="Participação" 
+            count={`${marketingStats.participationPercentage}%`} 
+          />
+        </div>
+
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+          {/* Chart - 60% width */}
+          <Card className="lg:col-span-3 p-6 shadow-card">
+            <h2 className="text-lg font-bold text-purple-800 mb-4">
+              Consolidado Anual - Marketing
+            </h2>
+            <ResponsiveContainer width="100%" height={400}>
+              <ComposedChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#6b7280"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis 
+                  yAxisId="left"
+                  stroke="#6b7280"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis 
+                  yAxisId="right"
+                  orientation="right"
+                  stroke="#FBBF24"
+                  style={{ fontSize: '12px' }}
+                  domain={[0, 100]}
+                  tickFormatter={(value) => `${value}%`}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: "white",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                    fontSize: '12px'
+                  }}
+                />
+                <Legend 
+                  wrapperStyle={{ fontSize: '12px' }}
+                />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="success" 
+                  stackId="a"
+                  fill="#9333EA" 
+                  name="Sucesso" 
+                  radius={[0, 0, 0, 0]}
+                />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="partial" 
+                  stackId="a"
+                  fill="#F0ABFC" 
+                  name="Parcial" 
+                  radius={[0, 0, 0, 0]}
+                />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="rollback" 
+                  stackId="a"
+                  fill="#DC2626" 
+                  name="Rollback" 
+                  radius={[8, 8, 0, 0]}
+                />
+                <Line 
+                  yAxisId="right"
+                  type="monotone" 
+                  dataKey="cancelPercentage" 
+                  stroke="#FBBF24" 
+                  strokeWidth={2}
+                  name="% Cancelamento"
+                  dot={{ fill: '#FBBF24', r: 4 }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
           </Card>
 
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Realizadas com Sucesso</p>
-                <p className="text-3xl font-bold text-green-600">{totalSuccess}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                <XCircle className="w-6 h-6 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Com Falhas</p>
-                <p className="text-3xl font-bold text-red-600">{totalFailed}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-accent" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Taxa de Sucesso</p>
-                <p className="text-3xl font-bold text-accent">{successRate}%</p>
-              </div>
-            </div>
+          {/* Table - 40% width */}
+          <Card className="lg:col-span-2 p-6 shadow-card">
+            <h2 className="text-lg font-bold text-purple-800 mb-4">
+              Estatísticas Mensais
+            </h2>
+            <MonthlyStatsTable monthlyData={marketingStats.monthlyData} />
           </Card>
         </div>
 
-        {/* Chart */}
-        <Card className="p-6 shadow-card mb-8">
-          <h2 className="text-xl font-bold text-foreground mb-6">
-            Atividades Mensais - Marketing
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px"
-                }}
-              />
-              <Legend />
-              <Bar dataKey="success" fill="hsl(142 76% 36%)" name="Sucesso" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="failed" fill="hsl(0 84% 60%)" name="Falhas" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-
-        {/* Activities Table */}
-        <Card className="p-6 shadow-card">
-          <h2 className="text-xl font-bold text-foreground mb-6">
-            Detalhes das Atividades - Marketing
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Data Início</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Executor</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Evento</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Severidade</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {marketingActivities.map((activity, index) => (
-                  <tr key={index} className="border-b border-border hover:bg-muted/50 transition-colors">
-                    <td className="py-3 px-4 text-foreground text-sm">{activity['DATA/HORA INÍCIO']}</td>
-                    <td className="py-3 px-4 text-foreground">{activity['Executor da Atividade']}</td>
-                    <td className="py-3 px-4 text-foreground text-sm">{activity['EVENTO']}</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        activity.SEVERIDADE === 'ALTA' 
-                          ? "bg-red-100 text-red-700" 
-                          : activity.SEVERIDADE === 'MÉDIA'
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-green-100 text-green-700"
-                      }`}>
-                        {activity.SEVERIDADE}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
-                        activity.STATUS === "REALIZADA COM SUCESSO" 
-                          ? "bg-green-100 text-green-700" 
-                          : "bg-red-100 text-red-700"
-                      }`}>
-                        {activity.STATUS === "REALIZADA COM SUCESSO" ? (
-                          <>
-                            <CheckCircle className="w-3 h-3" />
-                            Sucesso
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="w-3 h-3" />
-                            {activity.STATUS}
-                          </>
-                        )}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        {/* Partial Activities Section */}
+        {marketingStats.partialActivities.length > 0 && (
+          <Card className="p-6 shadow-card">
+            <div className="bg-purple-100 -m-6 mb-4 p-3 rounded-t-lg">
+              <h2 className="text-lg font-bold text-purple-800">
+                Realizada Parcialmente
+              </h2>
+            </div>
+            <div className="space-y-2">
+              {marketingStats.partialActivities.map((activity, index) => (
+                <div 
+                  key={index} 
+                  className="p-3 bg-purple-50 rounded border-l-4 border-purple-400"
+                >
+                  <p className="text-sm">
+                    <span className="font-semibold text-purple-700">
+                      TP {activity['TP \nSIGITM']}
+                    </span>
+                    {' - '}
+                    <span className="text-foreground">
+                      {activity['EVENTO']}
+                    </span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
       </main>
     </div>
   );
