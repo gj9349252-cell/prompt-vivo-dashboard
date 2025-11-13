@@ -11,42 +11,45 @@ import { ptBR } from "date-fns/locale";
 // Live Clock Component
 const LiveClock = () => {
   const [time, setTime] = useState(new Date());
-
   useEffect(() => {
     const timer = setInterval(() => {
       setTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
   }, []);
-
-  return (
-    <div className="text-right">
+  return <div className="text-right">
       <div className="text-sm font-semibold text-white">
-        {format(time, "dd/MM/yy HH:mm", { locale: ptBR })}
+        {format(time, "dd/MM/yy HH:mm", {
+        locale: ptBR
+      })}
       </div>
-    </div>
-  );
+    </div>;
 };
 
 // Equipment Card Component
-const EquipmentCard = ({ title, count }: { title: string; count: number | string }) => {
-  return (
-    <Card className="p-4 bg-white border-purple-200 shadow-sm hover:shadow-md transition-shadow">
+const EquipmentCard = ({
+  title,
+  count
+}: {
+  title: string;
+  count: number | string;
+}) => {
+  return <Card className="p-4 bg-white border-purple-200 shadow-sm hover:shadow-md transition-shadow">
       <div className="text-center">
         <p className="text-xs font-medium text-muted-foreground mb-1">{title}</p>
         <p className="text-2xl font-bold text-purple-600">{count}</p>
       </div>
-    </Card>
-  );
+    </Card>;
 };
 
 // Monthly Stats Table Component
-const MonthlyStatsTable = ({ monthlyData }: { monthlyData: Record<string, any> }) => {
-  const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-  return (
-    <div className="overflow-x-auto">
+const MonthlyStatsTable = ({
+  monthlyData
+}: {
+  monthlyData: Record<string, any>;
+}) => {
+  const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  return <div className="overflow-x-auto">
       <table className="w-full text-xs">
         <thead>
           <tr className="bg-purple-600 text-white">
@@ -62,13 +65,9 @@ const MonthlyStatsTable = ({ monthlyData }: { monthlyData: Record<string, any> }
         </thead>
         <tbody>
           {months.map((month, index) => {
-            const data = monthlyData[month];
-            const cancelPercentage = data.total > 0 
-              ? ((data.canceled / data.total) * 100).toFixed(1)
-              : '0.0';
-            
-            return (
-              <tr key={month} className={index % 2 === 0 ? 'bg-purple-50' : 'bg-white'}>
+          const data = monthlyData[month];
+          const cancelPercentage = data.total > 0 ? (data.canceled / data.total * 100).toFixed(1) : '0.0';
+          return <tr key={month} className={index % 2 === 0 ? 'bg-purple-50' : 'bg-white'}>
                 <td className="py-2 px-2 text-left font-medium border border-purple-200">{month}</td>
                 <td className="py-2 px-2 text-center border border-purple-200">{data.success}</td>
                 <td className="py-2 px-2 text-center border border-purple-200">{data.partial}</td>
@@ -77,47 +76,37 @@ const MonthlyStatsTable = ({ monthlyData }: { monthlyData: Record<string, any> }
                 <td className="py-2 px-2 text-center border border-purple-200">{data.notExecuted}</td>
                 <td className="py-2 px-2 text-center font-bold border border-purple-200">{data.total}</td>
                 <td className="py-2 px-2 text-center border border-purple-200">{cancelPercentage}%</td>
-              </tr>
-            );
-          })}
+              </tr>;
+        })}
         </tbody>
       </table>
-    </div>
-  );
+    </div>;
 };
-
 const AtividadesMarketing = () => {
   const navigate = useNavigate();
-  const { marketingStats } = useActivitiesData();
+  const {
+    marketingStats
+  } = useActivitiesData();
 
   // Prepare chart data
   const chartData = Object.entries(marketingStats.monthlyData).map(([month, data]) => {
-    const cancelPercentage = data.total > 0 
-      ? parseFloat(((data.canceled / data.total) * 100).toFixed(1))
-      : 0;
-    
+    const cancelPercentage = data.total > 0 ? parseFloat((data.canceled / data.total * 100).toFixed(1)) : 0;
     return {
-      month: month.substring(0, 3), // Abreviar nome do mês
+      month: month.substring(0, 3),
+      // Abreviar nome do mês
       success: data.success,
       partial: data.partial,
       rollback: data.rollback,
       cancelPercentage
     };
   });
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white">
+  return <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white">
       {/* Main Header */}
       <header className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 text-white py-4 px-6 shadow-lg">
         <div className="container mx-auto">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/")}
-                className="text-white hover:bg-white/20"
-              >
+              <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="text-white hover:bg-white/20">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <h1 className="text-2xl font-bold">
@@ -132,43 +121,20 @@ const AtividadesMarketing = () => {
       {/* Subtitle Bar */}
       <div className="bg-purple-500 text-white py-2 px-6">
         <div className="container mx-auto">
-          <p className="text-sm font-medium">
-            PORTAL ATIVIDADES PROGRAMADAS – PLATAFORMA DE TV – MKT CONTEÚDOS
-          </p>
+          
         </div>
       </div>
 
       <main className="container mx-auto px-6 py-6">
         {/* Equipment Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
-          <EquipmentCard 
-            title="MKT Conteúdos" 
-            count={marketingStats.equipmentCounts['MKT Conteúdos']} 
-          />
-          <EquipmentCard 
-            title="Freeview" 
-            count={marketingStats.equipmentCounts['Freeview']} 
-          />
-          <EquipmentCard 
-            title="Evento Temporal" 
-            count={marketingStats.equipmentCounts['Evento Temporal']} 
-          />
-          <EquipmentCard 
-            title="Novos Canais" 
-            count={marketingStats.equipmentCounts['Novos Canais']} 
-          />
-          <EquipmentCard 
-            title="Novas Cidades" 
-            count={marketingStats.equipmentCounts['Novas Cidades']} 
-          />
-          <EquipmentCard 
-            title="Outras Config." 
-            count={marketingStats.equipmentCounts['Outras Configurações']} 
-          />
-          <EquipmentCard 
-            title="Participação" 
-            count={`${marketingStats.participationPercentage}%`} 
-          />
+          <EquipmentCard title="MKT Conteúdos" count={marketingStats.equipmentCounts['MKT Conteúdos']} />
+          <EquipmentCard title="Freeview" count={marketingStats.equipmentCounts['Freeview']} />
+          <EquipmentCard title="Evento Temporal" count={marketingStats.equipmentCounts['Evento Temporal']} />
+          <EquipmentCard title="Novos Canais" count={marketingStats.equipmentCounts['Novos Canais']} />
+          <EquipmentCard title="Novas Cidades" count={marketingStats.equipmentCounts['Novas Cidades']} />
+          <EquipmentCard title="Outras Config." count={marketingStats.equipmentCounts['Outras Configurações']} />
+          <EquipmentCard title="Participação" count={`${marketingStats.participationPercentage}%`} />
         </div>
 
         {/* Two Column Layout */}
@@ -181,68 +147,31 @@ const AtividadesMarketing = () => {
             <ResponsiveContainer width="100%" height={400}>
               <ComposedChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis 
-                  dataKey="month" 
-                  stroke="#6b7280"
-                  style={{ fontSize: '12px' }}
-                />
-                <YAxis 
-                  yAxisId="left"
-                  stroke="#6b7280"
-                  style={{ fontSize: '12px' }}
-                />
-                <YAxis 
-                  yAxisId="right"
-                  orientation="right"
-                  stroke="#FBBF24"
-                  style={{ fontSize: '12px' }}
-                  domain={[0, 100]}
-                  tickFormatter={(value) => `${value}%`}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: "white",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                    fontSize: '12px'
-                  }}
-                />
-                <Legend 
-                  wrapperStyle={{ fontSize: '12px' }}
-                />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="success" 
-                  stackId="a"
-                  fill="#9333EA" 
-                  name="Sucesso" 
-                  radius={[0, 0, 0, 0]}
-                />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="partial" 
-                  stackId="a"
-                  fill="#F0ABFC" 
-                  name="Parcial" 
-                  radius={[0, 0, 0, 0]}
-                />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="rollback" 
-                  stackId="a"
-                  fill="#DC2626" 
-                  name="Rollback" 
-                  radius={[8, 8, 0, 0]}
-                />
-                <Line 
-                  yAxisId="right"
-                  type="monotone" 
-                  dataKey="cancelPercentage" 
-                  stroke="#FBBF24" 
-                  strokeWidth={2}
-                  name="% Cancelamento"
-                  dot={{ fill: '#FBBF24', r: 4 }}
-                />
+                <XAxis dataKey="month" stroke="#6b7280" style={{
+                fontSize: '12px'
+              }} />
+                <YAxis yAxisId="left" stroke="#6b7280" style={{
+                fontSize: '12px'
+              }} />
+                <YAxis yAxisId="right" orientation="right" stroke="#FBBF24" style={{
+                fontSize: '12px'
+              }} domain={[0, 100]} tickFormatter={value => `${value}%`} />
+                <Tooltip contentStyle={{
+                backgroundColor: "white",
+                border: "1px solid #e5e7eb",
+                borderRadius: "8px",
+                fontSize: '12px'
+              }} />
+                <Legend wrapperStyle={{
+                fontSize: '12px'
+              }} />
+                <Bar yAxisId="left" dataKey="success" stackId="a" fill="#9333EA" name="Sucesso" radius={[0, 0, 0, 0]} />
+                <Bar yAxisId="left" dataKey="partial" stackId="a" fill="#F0ABFC" name="Parcial" radius={[0, 0, 0, 0]} />
+                <Bar yAxisId="left" dataKey="rollback" stackId="a" fill="#DC2626" name="Rollback" radius={[8, 8, 0, 0]} />
+                <Line yAxisId="right" type="monotone" dataKey="cancelPercentage" stroke="#FBBF24" strokeWidth={2} name="% Cancelamento" dot={{
+                fill: '#FBBF24',
+                r: 4
+              }} />
               </ComposedChart>
             </ResponsiveContainer>
           </Card>
@@ -257,19 +186,14 @@ const AtividadesMarketing = () => {
         </div>
 
         {/* Partial Activities Section */}
-        {marketingStats.partialActivities.length > 0 && (
-          <Card className="p-6 shadow-card">
+        {marketingStats.partialActivities.length > 0 && <Card className="p-6 shadow-card">
             <div className="bg-purple-100 -m-6 mb-4 p-3 rounded-t-lg">
               <h2 className="text-lg font-bold text-purple-800">
                 Realizada Parcialmente
               </h2>
             </div>
             <div className="space-y-2">
-              {marketingStats.partialActivities.map((activity, index) => (
-                <div 
-                  key={index} 
-                  className="p-3 bg-purple-50 rounded border-l-4 border-purple-400"
-                >
+              {marketingStats.partialActivities.map((activity, index) => <div key={index} className="p-3 bg-purple-50 rounded border-l-4 border-purple-400">
                   <p className="text-sm">
                     <span className="font-semibold text-purple-700">
                       TP {activity['TP \nSIGITM']}
@@ -279,14 +203,10 @@ const AtividadesMarketing = () => {
                       {activity['EVENTO']}
                     </span>
                   </p>
-                </div>
-              ))}
+                </div>)}
             </div>
-          </Card>
-        )}
+          </Card>}
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default AtividadesMarketing;
