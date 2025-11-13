@@ -1,209 +1,252 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Megaphone, CheckCircle, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { 
+  ComposedChart, 
+  Bar, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend,
+  ResponsiveContainer,
+  LabelList 
+} from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const AtividadesMarketing = () => {
   const navigate = useNavigate();
-  const { marketingActivities } = useActivitiesData();
+  const { marketingStats, marketingActivities } = useActivitiesData();
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  const totalActivities = marketingActivities.length;
-  const totalSuccess = marketingActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
-  const totalFailed = totalActivities - totalSuccess;
-  const successRate = totalActivities > 0 ? ((totalSuccess / totalActivities) * 100).toFixed(1) : '0';
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // atualiza a cada minuto
+    return () => clearInterval(interval);
+  }, []);
 
-  // Agrupa por mês
-  const monthlyStats = marketingActivities.reduce((acc, activity) => {
-    const month = activity['MÊS'];
-    const year = activity['ANO'];
-    const key = `${year}-${month.padStart(2, '0')}`;
-    
-    if (!acc[key]) {
-      acc[key] = { success: 0, failed: 0, total: 0 };
-    }
-    
-    acc[key].total++;
-    if (activity.STATUS === 'REALIZADA COM SUCESSO') {
-      acc[key].success++;
-    } else {
-      acc[key].failed++;
-    }
-    
-    return acc;
-  }, {} as Record<string, { success: number; failed: number; total: number }>);
-
-  const monthlyData = Object.entries(monthlyStats)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, stats]) => {
-      const [year, month] = key.split('-');
-      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      return {
-        month: monthNames[parseInt(month) - 1],
-        success: stats.success,
-        failed: stats.failed,
-        total: stats.total
-      };
-    });
+  const partialActivities = marketingActivities.filter(
+    a => a.STATUS === 'REALIZADA PARCIALMENTE'
+  );
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-gradient-to-r from-accent to-orange-500 text-white py-6 px-6 shadow-elevated">
-        <div className="container mx-auto flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/")}
-            className="text-white hover:bg-white/20"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex items-center gap-3">
-            <Megaphone className="w-8 h-8" />
-            <div>
-              <h1 className="text-3xl font-bold">ATIVIDADES MARKETING</h1>
-              <p className="text-white/90 text-sm mt-1">Análise completa das atividades da área de Marketing</p>
+      <header className="bg-gradient-to-r from-purple-600 to-purple-500 text-white py-6 px-6 shadow-lg">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/")}
+                className="text-white hover:bg-white/20"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold">ATIVIDADES MARKETING</h1>
+                <p className="text-white/90 text-sm mt-1">Análise completa das atividades da área de Marketing</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-white/90">
+              <Clock className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                {format(currentTime, "dd/MM/yyyy HH:mm", { locale: ptBR })}
+              </span>
             </div>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Atividades</p>
-                <p className="text-3xl font-bold text-orange-600">{totalActivities}</p>
-              </div>
+        {/* Top KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="p-6 bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg">
+            <div className="text-center">
+              <p className="text-sm font-medium mb-2 text-white/90">Execução Global</p>
+              <p className="text-5xl font-bold">{marketingStats.executionGlobal}</p>
             </div>
           </Card>
 
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Realizadas com Sucesso</p>
-                <p className="text-3xl font-bold text-green-600">{totalSuccess}</p>
-              </div>
+          <Card className="p-6 bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg">
+            <div className="text-center">
+              <p className="text-sm font-medium mb-2 text-white/90">WO</p>
+              <p className="text-5xl font-bold">{marketingStats.woCount}</p>
             </div>
           </Card>
 
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                <XCircle className="w-6 h-6 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Com Falhas</p>
-                <p className="text-3xl font-bold text-red-600">{totalFailed}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-accent" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Taxa de Sucesso</p>
-                <p className="text-3xl font-bold text-accent">{successRate}%</p>
-              </div>
+          <Card className="p-6 bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg">
+            <div className="text-center">
+              <p className="text-sm font-medium mb-2 text-white/90">TASK</p>
+              <p className="text-5xl font-bold">{marketingStats.taskCount}</p>
             </div>
           </Card>
         </div>
 
-        {/* Chart */}
-        <Card className="p-6 shadow-card mb-8">
-          <h2 className="text-xl font-bold text-foreground mb-6">
-            Atividades Mensais - Marketing
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
+        {/* Consolidado Anual Chart */}
+        <Card className="p-6 mb-8 shadow-lg">
+          <h2 className="text-2xl font-bold mb-6 text-foreground">Consolidado Anual</h2>
+          <ResponsiveContainer width="100%" height={400}>
+            <ComposedChart data={marketingStats.monthlyData}>
+              <CartesianGrid strokeDasharray="0" stroke="rgba(0,0,0,0.05)" />
+              <XAxis 
+                dataKey="monthShort" 
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: '12px' }}
+              />
+              <YAxis 
+                yAxisId="left" 
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: '12px' }}
+              />
+              <YAxis 
+                yAxisId="right" 
+                orientation="right" 
+                domain={[0, 100]}
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: '12px' }}
+              />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px"
+                  backgroundColor: 'hsl(var(--background))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px'
                 }}
               />
               <Legend />
-              <Bar dataKey="success" fill="hsl(142 76% 36%)" name="Sucesso" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="failed" fill="hsl(0 84% 60%)" name="Falhas" radius={[8, 8, 0, 0]} />
-            </BarChart>
+              
+              {/* Barras empilhadas */}
+              <Bar 
+                yAxisId="left" 
+                dataKey="success" 
+                stackId="a" 
+                fill="#9333ea" 
+                name="Sucesso"
+                radius={[0, 0, 0, 0]}
+              >
+                <LabelList 
+                  dataKey="success" 
+                  position="inside" 
+                  fill="white" 
+                  style={{ fontSize: '11px', fontWeight: 'bold' }}
+                />
+              </Bar>
+              <Bar 
+                yAxisId="left" 
+                dataKey="partial" 
+                stackId="a" 
+                fill="#eab308" 
+                name="Parcial"
+                radius={[0, 0, 0, 0]}
+              >
+                <LabelList 
+                  dataKey="partial" 
+                  position="inside" 
+                  fill="white" 
+                  style={{ fontSize: '11px', fontWeight: 'bold' }}
+                />
+              </Bar>
+              <Bar 
+                yAxisId="left" 
+                dataKey="rollback" 
+                stackId="a" 
+                fill="#ec4899" 
+                name="Rollback"
+                radius={[4, 4, 0, 0]}
+              >
+                <LabelList 
+                  dataKey="rollback" 
+                  position="inside" 
+                  fill="white" 
+                  style={{ fontSize: '11px', fontWeight: 'bold' }}
+                />
+              </Bar>
+              
+              {/* Linha de percentual */}
+              <Line 
+                yAxisId="right" 
+                type="monotone" 
+                dataKey="successPercentage" 
+                stroke="#eab308" 
+                strokeWidth={3}
+                dot={{ r: 5, fill: "#eab308" }}
+                name="% Sucesso"
+              />
+            </ComposedChart>
           </ResponsiveContainer>
         </Card>
 
-        {/* Activities Table */}
-        <Card className="p-6 shadow-card">
-          <h2 className="text-xl font-bold text-foreground mb-6">
-            Detalhes das Atividades - Marketing
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Data Início</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Executor</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Evento</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Severidade</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {marketingActivities.map((activity, index) => (
-                  <tr key={index} className="border-b border-border hover:bg-muted/50 transition-colors">
-                    <td className="py-3 px-4 text-foreground text-sm">{activity['DATA/HORA INÍCIO']}</td>
-                    <td className="py-3 px-4 text-foreground">{activity['Executor da Atividade']}</td>
-                    <td className="py-3 px-4 text-foreground text-sm">{activity['EVENTO']}</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        activity.SEVERIDADE === 'ALTA' 
-                          ? "bg-red-100 text-red-700" 
-                          : activity.SEVERIDADE === 'MÉDIA'
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-green-100 text-green-700"
-                      }`}>
-                        {activity.SEVERIDADE}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
-                        activity.STATUS === "REALIZADA COM SUCESSO" 
-                          ? "bg-green-100 text-green-700" 
-                          : "bg-red-100 text-red-700"
-                      }`}>
-                        {activity.STATUS === "REALIZADA COM SUCESSO" ? (
-                          <>
-                            <CheckCircle className="w-3 h-3" />
-                            Sucesso
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="w-3 h-3" />
-                            {activity.STATUS}
-                          </>
-                        )}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {/* Detailed Monthly Table */}
+        <Card className="p-6 mb-8 shadow-lg overflow-x-auto">
+          <h2 className="text-2xl font-bold mb-6 text-foreground">Detalhamento Mensal</h2>
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-purple-600 hover:bg-purple-600">
+                <TableHead className="text-white font-bold">Mês</TableHead>
+                <TableHead className="text-white font-bold text-center">Sucesso</TableHead>
+                <TableHead className="text-white font-bold text-center">Parcial</TableHead>
+                <TableHead className="text-white font-bold text-center">Rollback</TableHead>
+                <TableHead className="text-white font-bold text-center">Cancelado</TableHead>
+                <TableHead className="text-white font-bold text-center">% Cancelado</TableHead>
+                <TableHead className="text-white font-bold text-center">Não executado</TableHead>
+                <TableHead className="text-white font-bold text-center">Total Executado</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {marketingStats.monthlyData.map((row) => (
+                <TableRow key={row.month} className="hover:bg-muted/50">
+                  <TableCell className="font-semibold">{row.month}</TableCell>
+                  <TableCell className="text-center">{row.success}</TableCell>
+                  <TableCell className="text-center">{row.partial}</TableCell>
+                  <TableCell className="text-center">{row.rollback}</TableCell>
+                  <TableCell className="text-center">{row.canceled}</TableCell>
+                  <TableCell className="text-center font-bold text-purple-600">
+                    {row.canceledPercentage.toFixed(1)}%
+                  </TableCell>
+                  <TableCell className="text-center">{row.notExecuted}</TableCell>
+                  <TableCell className="text-center font-bold">{row.totalExecuted}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </Card>
+
+        {/* Realizada Parcialmente Section */}
+        {partialActivities.length > 0 && (
+          <Card className="p-6 shadow-lg">
+            <h2 className="text-2xl font-bold mb-6 text-foreground">Realizada Parcialmente</h2>
+            <div className="space-y-3">
+              {partialActivities.map(activity => (
+                <div 
+                  key={activity['TP \nSIGITM']} 
+                  className="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg"
+                >
+                  <p className="font-semibold text-foreground">
+                    TP: {activity['TP \nSIGITM']}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {activity['ID DE BUSCA']}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
       </main>
     </div>
   );
