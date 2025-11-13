@@ -328,6 +328,114 @@ export const useActivitiesData = () => {
     return data.filter(activity => activity['Área Solicitante'] === 'PLATAFORMA' || activity['Área Solicitante'] === 'TV PLATAFORMA BR');
   }, [data]);
 
+  const marketingStats = useMemo(() => {
+    const totalActivities = marketingActivities.length;
+    const totalSuccess = marketingActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
+    const totalPartial = marketingActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length;
+    const totalRollback = marketingActivities.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length;
+    const totalCanceled = marketingActivities.filter(a => a.STATUS === 'CANCELADA').length;
+    const totalNotExecuted = marketingActivities.filter(a => a.STATUS === 'NÃO EXECUTADO').length;
+    
+    // Execução Global, WO e TASK counts
+    const executionGlobal = marketingActivities.filter(a => a['Execução - GLOBAL'] === '1').length;
+    const woCount = marketingActivities.filter(a => a['TAREFA (TASK)'] !== '1').length; // WO = não é TASK
+    const taskCount = marketingActivities.filter(a => a['TAREFA (TASK)'] === '1').length;
+    
+    // Participação (Marketing vs Total)
+    const participationRate = data.length > 0 ? (totalActivities / data.length) * 100 : 0;
+    
+    // Equipamentos específicos de Marketing
+    const equipment = {
+      freeview: marketingActivities.filter(a => a.Freeview === '1').length,
+      eventoTemporal: marketingActivities.filter(a => a['Evento Temporal'] === '1').length,
+      novosCanais: marketingActivities.filter(a => a['Novos Canais'] === '1').length,
+      novasCidades: marketingActivities.filter(a => a['Novas Cidades'] === '1').length,
+      outrasConfig: marketingActivities.filter(a => a['Outras Configurações'] === '1').length,
+    };
+    
+    // Dados mensais detalhados
+    const monthMap: Record<string, {
+      success: number;
+      partial: number;
+      rollback: number;
+      canceled: number;
+      notExecuted: number;
+    }> = {};
+
+    marketingActivities.forEach(activity => {
+      const month = activity['MÊS'];
+      const year = activity['ANO'];
+      const key = `${year}-${month.padStart(2, '0')}`;
+
+      if (!monthMap[key]) {
+        monthMap[key] = {
+          success: 0,
+          partial: 0,
+          rollback: 0,
+          canceled: 0,
+          notExecuted: 0
+        };
+      }
+
+      if (activity.STATUS === 'REALIZADA COM SUCESSO') {
+        monthMap[key].success++;
+      } else if (activity.STATUS === 'REALIZADA PARCIALMENTE') {
+        monthMap[key].partial++;
+      } else if (activity.STATUS === 'REALIZADO ROLLBACK') {
+        monthMap[key].rollback++;
+      } else if (activity.STATUS === 'CANCELADA') {
+        monthMap[key].canceled++;
+      } else if (activity.STATUS === 'NÃO EXECUTADO') {
+        monthMap[key].notExecuted++;
+      }
+    });
+
+    const monthlyData = Object.entries(monthMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, stats]) => {
+        const [year, month] = key.split('-');
+        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                           'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const monthNamesShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 
+                                'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const totalExecuted = stats.success + stats.partial + stats.rollback;
+        const canceledPercentage = (totalExecuted + stats.canceled) > 0 
+          ? (stats.canceled / (totalExecuted + stats.canceled)) * 100 
+          : 0;
+        const successPercentage = totalExecuted > 0 
+          ? (stats.success / totalExecuted) * 100 
+          : 0;
+
+        return {
+          month: monthNames[parseInt(month) - 1],
+          monthShort: monthNamesShort[parseInt(month) - 1],
+          success: stats.success,
+          partial: stats.partial,
+          rollback: stats.rollback,
+          canceled: stats.canceled,
+          notExecuted: stats.notExecuted,
+          totalExecuted,
+          canceledPercentage,
+          successPercentage
+        };
+      });
+
+    return {
+      totalActivities,
+      totalSuccess,
+      totalPartial,
+      totalRollback,
+      totalCanceled,
+      totalNotExecuted,
+      executionGlobal,
+      woCount,
+      taskCount,
+      participationRate,
+      equipment,
+      monthlyData
+    };
+  }, [marketingActivities, data]);
+
   return {
     data,
     equipmentData,
@@ -338,6 +446,7 @@ export const useActivitiesData = () => {
     getActivitiesByEquipment,
     engineeringActivities,
     marketingActivities,
-    platformActivities
+    platformActivities,
+    marketingStats
   };
 };
