@@ -70,6 +70,10 @@ export const useActivitiesData = () => {
   }, []);
 
   const equipmentFields = useMemo(() => [
+    'Freeview',
+    'Evento Temporal',
+    'Novos Canais',
+    'Novas Cidades',
     'VSA',
     'VSPP',
     'RWs',
@@ -81,7 +85,10 @@ export const useActivitiesData = () => {
     'RDV',
     'DVB',
     'SWP',
-    'OPCH'
+    'OPCH',
+    'Dispositivos',
+    'Base de dados',
+    'Outras Configurações'
   ], []);
 
   const equipmentData = useMemo(() => {

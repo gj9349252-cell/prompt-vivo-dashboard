@@ -5,7 +5,6 @@ import {
   Globe, 
   Megaphone, 
   Settings, 
-  Server, 
   TrendingUp,
   CheckSquare
 } from "lucide-react";
@@ -48,13 +47,6 @@ const Index = () => {
       icon: Settings,
       route: "/atividades-engenharia",
       color: "from-blue-500 to-blue-600"
-    },
-    {
-      title: "ATIVIDADES PLATAFORMA",
-      description: "Atividades específicas de Plataforma",
-      icon: Server,
-      route: "/atividades-plataforma",
-      color: "from-green-500 to-green-600"
     },
     {
       title: "CONSOLIDADO ANUAL",
