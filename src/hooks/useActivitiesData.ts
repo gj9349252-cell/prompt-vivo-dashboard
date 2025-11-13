@@ -328,6 +328,92 @@ export const useActivitiesData = () => {
     return data.filter(activity => activity['Área Solicitante'] === 'PLATAFORMA' || activity['Área Solicitante'] === 'TV PLATAFORMA BR');
   }, [data]);
 
+  // Marketing Stats - Detailed monthly statistics
+  const marketingStats = useMemo(() => {
+    const monthlyData: Record<string, {
+      success: number;
+      partial: number;
+      rollback: number;
+      canceled: number;
+      notExecuted: number;
+      total: number;
+    }> = {};
+
+    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+    // Initialize all months
+    monthNames.forEach((month) => {
+      monthlyData[month] = {
+        success: 0,
+        partial: 0,
+        rollback: 0,
+        canceled: 0,
+        notExecuted: 0,
+        total: 0
+      };
+    });
+
+    // Count activities by month and status
+    marketingActivities.forEach(activity => {
+      const monthIndex = parseInt(activity['MÊS']) - 1;
+      const monthName = monthNames[monthIndex];
+      
+      if (monthlyData[monthName]) {
+        monthlyData[monthName].total++;
+        
+        const status = activity.STATUS;
+        if (status === 'REALIZADA COM SUCESSO') {
+          monthlyData[monthName].success++;
+        } else if (status === 'REALIZADA PARCIALMENTE') {
+          monthlyData[monthName].partial++;
+        } else if (status === 'REALIZADA ROLLBACK') {
+          monthlyData[monthName].rollback++;
+        } else if (status === 'CANCELADO') {
+          monthlyData[monthName].canceled++;
+        } else {
+          monthlyData[monthName].notExecuted++;
+        }
+      }
+    });
+
+    // Equipment counts for marketing
+    const equipmentCounts: Record<string, number> = {
+      'MKT Conteúdos': marketingActivities.length,
+      'Freeview': 0,
+      'Evento Temporal': 0,
+      'Novos Canais': 0,
+      'Novas Cidades': 0,
+      'Outras Configurações': 0
+    };
+
+    marketingActivities.forEach(activity => {
+      if (activity['Freeview'] === '1') equipmentCounts['Freeview']++;
+      if (activity['Evento Temporal'] === '1') equipmentCounts['Evento Temporal']++;
+      if (activity['Novos Canais'] === '1') equipmentCounts['Novos Canais']++;
+      if (activity['Novas Cidades'] === '1') equipmentCounts['Novas Cidades']++;
+      if (activity['Outras Configurações'] === '1') equipmentCounts['Outras Configurações']++;
+    });
+
+    // Participation percentage
+    const totalActivities = data.length;
+    const participationPercentage = totalActivities > 0 
+      ? ((marketingActivities.length / totalActivities) * 100).toFixed(1)
+      : '0';
+
+    // Partial activities list
+    const partialActivities = marketingActivities.filter(
+      activity => activity.STATUS === 'REALIZADA PARCIALMENTE'
+    );
+
+    return {
+      monthlyData,
+      equipmentCounts,
+      participationPercentage,
+      partialActivities
+    };
+  }, [marketingActivities, data]);
+
   return {
     data,
     equipmentData,
@@ -338,6 +424,7 @@ export const useActivitiesData = () => {
     getActivitiesByEquipment,
     engineeringActivities,
     marketingActivities,
-    platformActivities
+    platformActivities,
+    marketingStats
   };
 };
