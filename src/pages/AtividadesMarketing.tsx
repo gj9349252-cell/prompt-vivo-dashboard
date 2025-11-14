@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
@@ -146,16 +146,11 @@ const AtividadesMarketing = () => {
             </h2>
             <ResponsiveContainer width="100%" height={400}>
               <ComposedChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="month" stroke="#6b7280" style={{
                 fontSize: '12px'
               }} />
-                <YAxis yAxisId="left" stroke="#6b7280" style={{
-                fontSize: '12px'
-              }} />
-                <YAxis yAxisId="right" orientation="right" stroke="#FBBF24" style={{
-                fontSize: '12px'
-              }} domain={[0, 100]} tickFormatter={value => `${value}%`} />
+                <YAxis yAxisId="left" hide={true} />
+                <YAxis yAxisId="right" orientation="right" hide={true} domain={[0, 100]} />
                 <Tooltip contentStyle={{
                 backgroundColor: "white",
                 border: "1px solid #e5e7eb",
@@ -165,9 +160,36 @@ const AtividadesMarketing = () => {
                 <Legend wrapperStyle={{
                 fontSize: '12px'
               }} />
-                <Bar yAxisId="left" dataKey="success" stackId="a" fill="#9333EA" name="Sucesso" radius={[0, 0, 0, 0]} />
-                <Bar yAxisId="left" dataKey="partial" stackId="a" fill="#F0ABFC" name="Parcial" radius={[0, 0, 0, 0]} />
-                <Bar yAxisId="left" dataKey="rollback" stackId="a" fill="#DC2626" name="Rollback" radius={[8, 8, 0, 0]} />
+                <Bar yAxisId="left" dataKey="success" stackId="a" fill="#9333EA" name="Sucesso" radius={[0, 0, 0, 0]}>
+                  <LabelList 
+                    dataKey="success" 
+                    position="center" 
+                    fill="white" 
+                    fontSize={12}
+                    fontWeight="bold"
+                    formatter={(value: number) => value > 0 ? value : ''}
+                  />
+                </Bar>
+                <Bar yAxisId="left" dataKey="partial" stackId="a" fill="#F0ABFC" name="Parcial" radius={[0, 0, 0, 0]}>
+                  <LabelList 
+                    dataKey="partial" 
+                    position="center" 
+                    fill="#9333EA" 
+                    fontSize={12}
+                    fontWeight="bold"
+                    formatter={(value: number) => value > 0 ? value : ''}
+                  />
+                </Bar>
+                <Bar yAxisId="left" dataKey="rollback" stackId="a" fill="#DC2626" name="Rollback" radius={[8, 8, 0, 0]}>
+                  <LabelList 
+                    dataKey="rollback" 
+                    position="center" 
+                    fill="white" 
+                    fontSize={12}
+                    fontWeight="bold"
+                    formatter={(value: number) => value > 0 ? value : ''}
+                  />
+                </Bar>
                 <Line yAxisId="right" type="monotone" dataKey="cancelPercentage" stroke="#FBBF24" strokeWidth={2} name="% Cancelamento" dot={{
                 fill: '#FBBF24',
                 r: 4
