@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings, CheckCircle, XCircle, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 
 const AtividadesEngenharia = () => {
@@ -129,9 +129,8 @@ const AtividadesEngenharia = () => {
           </h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <YAxis hide={true} />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: "hsl(var(--card))",
@@ -140,8 +139,26 @@ const AtividadesEngenharia = () => {
                 }}
               />
               <Legend />
-              <Bar dataKey="success" fill="hsl(142 76% 36%)" name="Sucesso" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="failed" fill="hsl(0 84% 60%)" name="Falhas" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="success" fill="hsl(142 76% 36%)" name="Sucesso" radius={[8, 8, 0, 0]}>
+                <LabelList 
+                  dataKey="success" 
+                  position="center" 
+                  fill="white" 
+                  fontSize={12}
+                  fontWeight="bold"
+                  formatter={(value: number) => value > 0 ? value : ''}
+                />
+              </Bar>
+              <Bar dataKey="failed" fill="hsl(0 84% 60%)" name="Falhas" radius={[8, 8, 0, 0]}>
+                <LabelList 
+                  dataKey="failed" 
+                  position="center" 
+                  fill="white" 
+                  fontSize={12}
+                  fontWeight="bold"
+                  formatter={(value: number) => value > 0 ? value : ''}
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </Card>

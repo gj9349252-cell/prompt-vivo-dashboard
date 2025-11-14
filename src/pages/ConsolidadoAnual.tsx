@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 
 const ConsolidadoAnual = () => {
@@ -102,12 +102,10 @@ const ConsolidadoAnual = () => {
                   <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
               <YAxis 
                 domain={[85, 100]} 
-                stroke="hsl(var(--muted-foreground))"
-                label={{ value: 'Taxa de Sucesso (%)', angle: -90, position: 'insideLeft' }}
+                hide={true}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -142,9 +140,8 @@ const ConsolidadoAnual = () => {
                   <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <YAxis hide={true} />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: "hsl(var(--card))",
