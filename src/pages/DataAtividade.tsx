@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LabelList } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
@@ -162,8 +162,7 @@ const DataAtividade = () => {
           </h2>
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={filteredEquipmentData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" stroke="hsl(var(--muted-foreground))" />
+              <XAxis type="number" hide={true} />
               <YAxis dataKey="name" type="category" width={150} stroke="hsl(var(--muted-foreground))" />
               <Tooltip 
                 contentStyle={{ 
@@ -173,6 +172,14 @@ const DataAtividade = () => {
                 }}
               />
               <Bar dataKey="total" radius={[0, 8, 8, 0]}>
+                <LabelList 
+                  dataKey="total" 
+                  position="center" 
+                  fill="white" 
+                  fontSize={12}
+                  fontWeight="bold"
+                  formatter={(value: number) => value > 0 ? value : ''}
+                />
                 {filteredEquipmentData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill="hsl(var(--primary))" />
                 ))}

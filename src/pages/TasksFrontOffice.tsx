@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, ComposedChart, LabelList } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const TasksFrontOffice = () => {
@@ -158,16 +158,12 @@ const TasksFrontOffice = () => {
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
                 <ComposedChart data={tasksStats.monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis 
                     dataKey="month" 
                     stroke="hsl(var(--foreground))"
                     tick={{ fill: 'hsl(var(--foreground))' }}
                   />
-                  <YAxis 
-                    stroke="hsl(var(--foreground))"
-                    tick={{ fill: 'hsl(var(--foreground))' }}
-                  />
+                  <YAxis hide={true} />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--card))',
@@ -176,9 +172,36 @@ const TasksFrontOffice = () => {
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="success" name="Sucesso" fill="hsl(var(--primary))" stackId="a" />
-                  <Bar dataKey="partial" name="Parcial" fill="hsl(280, 60%, 50%)" stackId="a" />
-                  <Bar dataKey="rollback" name="Rollback" fill="hsl(280, 40%, 30%)" stackId="a" />
+                  <Bar dataKey="success" name="Sucesso" fill="hsl(var(--primary))" stackId="a">
+                    <LabelList 
+                      dataKey="success" 
+                      position="center" 
+                      fill="white" 
+                      fontSize={12}
+                      fontWeight="bold"
+                      formatter={(value: number) => value > 0 ? value : ''}
+                    />
+                  </Bar>
+                  <Bar dataKey="partial" name="Parcial" fill="hsl(280, 60%, 50%)" stackId="a">
+                    <LabelList 
+                      dataKey="partial" 
+                      position="center" 
+                      fill="white" 
+                      fontSize={12}
+                      fontWeight="bold"
+                      formatter={(value: number) => value > 0 ? value : ''}
+                    />
+                  </Bar>
+                  <Bar dataKey="rollback" name="Rollback" fill="hsl(280, 40%, 30%)" stackId="a">
+                    <LabelList 
+                      dataKey="rollback" 
+                      position="center" 
+                      fill="white" 
+                      fontSize={12}
+                      fontWeight="bold"
+                      formatter={(value: number) => value > 0 ? value : ''}
+                    />
+                  </Bar>
                   <Line 
                     type="monotone" 
                     dataKey="canceledPercentage" 
