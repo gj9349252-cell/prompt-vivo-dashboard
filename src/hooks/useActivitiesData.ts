@@ -6,48 +6,52 @@ import { ptBR } from 'date-fns/locale';
 export interface Activity {
   'DATA/HORA INÍCIO': string;
   'DATA/HORA \nFIM': string;
-  'TP \nSIGITM': string;
-  'UDO ID': string;
+  'TP \nSIGITM': number;
+  'UDO ID': string | number;
   'STATUS': string;
   'EVENTO': string;
   'SEVERIDADE': string;
   'CRITICIDADE': string;
   'Executor da Atividade': string;
   'Área Solicitante': string;
-  'Observações': string;
+  'Observações'?: string;
   'ID DE BUSCA': string;
-  'SEMANA': string;
-  'Freeview': string;
-  'Evento Temporal': string;
-  'Novos Canais': string;
-  'Novas Cidades': string;
-  'VSA': string;
-  'VSPP': string;
-  'RWs': string;
-  'SCDN': string;
-  'CDN': string;
-  'FHR': string;
-  'RHR': string;
-  'SCR': string;
-  'RDV': string;
-  'DVB': string;
-  'SWP': string;
-  'OPCH': string;
-  'Dispositivos': string;
-  'Base de dados': string;
-  'Outras Configurações': string;
-  'Documentação': string;
-  'TAREFA (TASK)': string;
-  'Demanda - Global': string;
-  'Demanda - Plataforma': string;
-  'Demanda - MKT Conteúdos': string;
-  'Demanda - Engenharia': string;
-  'DIA': string;
-  'MÊS': string;
-  'ANO': string;
-  'Execução - GLOBAL': string;
-  'Execução Plataforma BR': string;
+  'SEMANA': number;
+  'Freeview': number;
+  'Evento Temporal': number;
+  'Novos Canais': number;
+  'Novas Cidades': number;
+  'VSA': number;
+  'VSPP': number;
+  'RWs': number;
+  'SCDN': number;
+  'CDN': number;
+  'FHR': number;
+  'RHR': number;
+  'SCR': number;
+  'RDV': number;
+  'DVB': number;
+  'SWP': number;
+  'OPCH': number;
+  'Dispositivos': number;
+  'Base de dados': number;
+  'Outras Configurações': number;
+  'Documentação': number;
+  'TAREFA (TASK)': number;
+  'Demanda - Global': number;
+  'Demanda - Plataforma': number;
+  'Demanda - MKT Conteúdos': number;
+  'Demanda - Engenharia': number;
+  'DIA': number;
+  'MÊS': number;
+  'ANO': number;
+  'Execução - GLOBAL': number;
+  'Execução Plataforma BR': number;
   'Validação': string;
+  'Consolidado': number;
+  'Cancelado': number;
+  'Não executado': number;
+  'TASK': number;
 }
 
 const formatBrazilianDate = (dateStr: string): string => {
@@ -101,7 +105,7 @@ export const useActivitiesData = () => {
 
     data.forEach(activity => {
       equipmentFields.forEach(field => {
-        if (activity[field as keyof Activity] === '1') {
+        if (activity[field as keyof Activity] === 1) {
           totals[field]++;
         }
       });
@@ -120,15 +124,15 @@ export const useActivitiesData = () => {
   }, [data, equipmentFields]);
 
   const globalActivities = useMemo(() => {
-    return data.filter(activity => activity['Execução - GLOBAL'] === '1');
+    return data.filter(activity => activity['Execução - GLOBAL'] === 1);
   }, [data]);
 
   const globalByMonth = useMemo(() => {
     const monthMap: Record<string, { total: number; success: number; failed: number }> = {};
 
     globalActivities.forEach(activity => {
-      const month = activity['MÊS'];
-      const year = activity['ANO'];
+      const month = String(activity['MÊS']);
+      const year = String(activity['ANO']);
       const key = `${year}-${month.padStart(2, '0')}`;
 
       if (!monthMap[key]) {
@@ -162,8 +166,8 @@ export const useActivitiesData = () => {
     const monthMap: Record<string, { total: number; success: number }> = {};
 
     data.forEach(activity => {
-      const month = activity['MÊS'];
-      const year = activity['ANO'];
+      const month = String(activity['MÊS']);
+      const year = String(activity['ANO']);
       const key = `${year}-${month.padStart(2, '0')}`;
 
       if (!monthMap[key]) {
@@ -225,8 +229,8 @@ export const useActivitiesData = () => {
     }> = {};
 
     tasks.forEach(activity => {
-      const month = activity['MÊS'];
-      const year = activity['ANO'];
+      const month = String(activity['MÊS']);
+      const year = String(activity['ANO']);
       const key = `${year}-${month.padStart(2, '0')}`;
 
       if (!monthMap[key]) {
@@ -313,7 +317,7 @@ export const useActivitiesData = () => {
 
   const getActivitiesByEquipment = (equipmentName: string) => {
     return data.filter(activity => {
-      return activity[equipmentName as keyof Activity] === '1';
+      return activity[equipmentName as keyof Activity] === 1;
     });
   };
 
@@ -357,7 +361,7 @@ export const useActivitiesData = () => {
 
     // Count activities by month and status
     marketingActivities.forEach(activity => {
-      const monthIndex = parseInt(activity['MÊS']) - 1;
+      const monthIndex = activity['MÊS'] - 1;
       const monthName = monthNames[monthIndex];
       
       if (monthlyData[monthName]) {
@@ -389,11 +393,11 @@ export const useActivitiesData = () => {
     };
 
     marketingActivities.forEach(activity => {
-      if (activity['Freeview'] === '1') equipmentCounts['Freeview']++;
-      if (activity['Evento Temporal'] === '1') equipmentCounts['Evento Temporal']++;
-      if (activity['Novos Canais'] === '1') equipmentCounts['Novos Canais']++;
-      if (activity['Novas Cidades'] === '1') equipmentCounts['Novas Cidades']++;
-      if (activity['Outras Configurações'] === '1') equipmentCounts['Outras Configurações']++;
+      if (activity['Freeview'] === 1) equipmentCounts['Freeview']++;
+      if (activity['Evento Temporal'] === 1) equipmentCounts['Evento Temporal']++;
+      if (activity['Novos Canais'] === 1) equipmentCounts['Novos Canais']++;
+      if (activity['Novas Cidades'] === 1) equipmentCounts['Novas Cidades']++;
+      if (activity['Outras Configurações'] === 1) equipmentCounts['Outras Configurações']++;
     });
 
     // Participation percentage

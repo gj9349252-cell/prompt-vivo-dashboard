@@ -16,8 +16,8 @@ const AtividadesEngenharia = () => {
 
   // Agrupa por mês
   const monthlyStats = engineeringActivities.reduce((acc, activity) => {
-    const month = activity['MÊS'];
-    const year = activity['ANO'];
+    const month = String(activity['MÊS']);
+    const year = String(activity['ANO']);
     const key = `${year}-${month.padStart(2, '0')}`;
     
     if (!acc[key]) {
