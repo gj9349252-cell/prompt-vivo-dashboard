@@ -110,7 +110,7 @@ const AtividadesMarketing = () => {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <h1 className="text-2xl font-bold">
-                Portal Atividades Programadas – Designer Máscaras (MKT CONTEÚDOS)
+                Portal Atividades Programadas – (MKT CONTEÚDOS)
               </h1>
             </div>
             <LiveClock />
@@ -161,34 +161,13 @@ const AtividadesMarketing = () => {
                 fontSize: '12px'
               }} />
                 <Bar yAxisId="left" dataKey="success" stackId="a" fill="#9333EA" name="Sucesso" radius={[0, 0, 0, 0]}>
-                  <LabelList 
-                    dataKey="success" 
-                    position="center" 
-                    fill="white" 
-                    fontSize={12}
-                    fontWeight="bold"
-                    formatter={(value: number) => value > 0 ? value : ''}
-                  />
+                  <LabelList dataKey="success" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
                 </Bar>
                 <Bar yAxisId="left" dataKey="partial" stackId="a" fill="#F0ABFC" name="Parcial" radius={[0, 0, 0, 0]}>
-                  <LabelList 
-                    dataKey="partial" 
-                    position="center" 
-                    fill="#9333EA" 
-                    fontSize={12}
-                    fontWeight="bold"
-                    formatter={(value: number) => value > 0 ? value : ''}
-                  />
+                  <LabelList dataKey="partial" position="center" fill="#9333EA" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
                 </Bar>
                 <Bar yAxisId="left" dataKey="rollback" stackId="a" fill="#DC2626" name="Rollback" radius={[8, 8, 0, 0]}>
-                  <LabelList 
-                    dataKey="rollback" 
-                    position="center" 
-                    fill="white" 
-                    fontSize={12}
-                    fontWeight="bold"
-                    formatter={(value: number) => value > 0 ? value : ''}
-                  />
+                  <LabelList dataKey="rollback" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
                 </Bar>
                 <Line yAxisId="right" type="monotone" dataKey="cancelPercentage" stroke="#FBBF24" strokeWidth={2} name="% Cancelamento" dot={{
                 fill: '#FBBF24',
