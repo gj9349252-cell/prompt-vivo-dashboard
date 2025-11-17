@@ -43,7 +43,7 @@ const DataAtividade = () => {
 
     filteredActivities.forEach(activity => {
       equipmentFields.forEach(field => {
-        if (activity[field as keyof typeof activity] === '1') {
+        if (activity[field as keyof typeof activity] === 1) {
           totals[field]++;
         }
       });

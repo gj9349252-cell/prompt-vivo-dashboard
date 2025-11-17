@@ -19,7 +19,7 @@ const AtividadesGlobal = () => {
     return globalActivities.filter(activity => {
       const activityDate = activity['DATA/HORA INÍCIO'];
       const [day, month, year] = activityDate.split('/');
-      const activityFullDate = `20${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      const activityFullDate = `${year}-${month}-${day}`;
 
       if (startDate && activityFullDate < startDate) return false;
       if (endDate && activityFullDate > endDate) return false;
