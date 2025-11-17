@@ -18,7 +18,11 @@ const DataAtividade = () => {
 
     const filteredActivities = data.filter(activity => {
       const activityDate = activity['DATA/HORA INÍCIO'];
+      if (!activityDate) return false;
+      
       const [day, month, year] = activityDate.split('/');
+      if (!day || !month || !year) return false;
+      
       const activityFullDate = `20${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 
       if (startDate && activityFullDate < startDate) return false;
