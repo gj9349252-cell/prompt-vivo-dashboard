@@ -52,8 +52,8 @@ export interface Activity {
 
 const formatBrazilianDate = (dateStr: string): string => {
   try {
-    // Formato original: "3/1/25 0:00" ou "06/1/25 0:00"
-    const parsed = parse(dateStr, 'M/d/yy H:mm', new Date());
+    // Novo formato: "03/01/25" (DD/MM/YY)
+    const parsed = parse(dateStr, 'dd/MM/yy', new Date());
     return format(parsed, 'dd/MM/yyyy', { locale: ptBR });
   } catch (error) {
     return dateStr;
@@ -62,7 +62,8 @@ const formatBrazilianDate = (dateStr: string): string => {
 
 export const useActivitiesData = () => {
   const data = useMemo(() => {
-    return (activitiesData as Activity[]).map(activity => ({
+    const rawData = (activitiesData as any)["Base Atividades"] as Activity[];
+    return rawData.map(activity => ({
       ...activity,
       'DATA/HORA INÍCIO': formatBrazilianDate(activity['DATA/HORA INÍCIO']),
       'DATA/HORA \nFIM': formatBrazilianDate(activity['DATA/HORA \nFIM'])
