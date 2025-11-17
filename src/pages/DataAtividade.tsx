@@ -20,7 +20,9 @@ const DataAtividade = () => {
       const activityDate = activity['DATA/HORA INÍCIO'];
       if (!activityDate) return false;
       
-      const [day, month, year] = activityDate.split('/');
+      // Separar data da hora primeiro
+      const datePart = activityDate.split(' ')[0];
+      const [day, month, year] = datePart.split('/');
       if (!day || !month || !year) return false;
       
       const activityFullDate = `20${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
