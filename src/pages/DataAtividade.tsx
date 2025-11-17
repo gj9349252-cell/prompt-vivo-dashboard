@@ -20,12 +20,12 @@ const DataAtividade = () => {
       const activityDate = activity['DATA/HORA INÍCIO'];
       if (!activityDate) return false;
       
-      // Separar data da hora primeiro
-      const datePart = activityDate.split(' ')[0];
-      const [day, month, year] = datePart.split('/');
+      // Formato já convertido: "DD/MM/YYYY"
+      const [day, month, year] = activityDate.split('/');
       if (!day || !month || !year) return false;
       
-      const activityFullDate = `20${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      // Converter para formato ISO: YYYY-MM-DD
+      const activityFullDate = `${year}-${month}-${day}`;
 
       if (startDate && activityFullDate < startDate) return false;
       if (endDate && activityFullDate > endDate) return false;
