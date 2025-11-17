@@ -66,7 +66,7 @@ const DataAtividade = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="gradient-header text-white py-6 px-6 shadow-elevated">
+      <header className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-6 px-6 shadow-elevated">
         <div className="container mx-auto flex items-center gap-4">
           <Button
             variant="ghost"
