@@ -32,28 +32,28 @@ const Index = () => {
       description: "Consolidado de TASKs - Front Office",
       icon: CheckSquare,
       route: "/tasks-front-office",
-      color: "from-pink-500 to-red-500"
+      color: "from-primary to-primary-light"
     },
     {
       title: "ATIVIDADES MARKETING",
       description: "Atividades da área de Marketing",
       icon: Megaphone,
       route: "/atividades-marketing",
-      color: "from-accent to-orange-500"
+      color: "from-primary to-primary-dark"
     },
     {
       title: "ATIVIDADES ENGENHARIA",
       description: "Atividades da área de Engenharia",
       icon: Settings,
       route: "/atividades-engenharia",
-      color: "from-blue-500 to-blue-600"
+      color: "from-primary to-primary-light"
     },
     {
       title: "CONSOLIDADO ANUAL",
       description: "Análise consolidada do ano",
       icon: TrendingUp,
       route: "/consolidado-anual",
-      color: "from-purple-500 to-purple-600"
+      color: "from-primary to-primary-dark"
     }
   ];
 

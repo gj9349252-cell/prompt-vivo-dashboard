@@ -34,10 +34,10 @@ const EquipmentCard = ({
   title: string;
   count: number | string;
 }) => {
-  return <Card className="p-4 bg-white border-blue-200 shadow-sm hover:shadow-md transition-shadow">
+  return <Card className="p-4 bg-white border-primary/20 shadow-sm hover:shadow-md transition-shadow">
       <div className="text-center">
         <p className="text-xs font-medium text-muted-foreground mb-1">{title}</p>
-        <p className="text-2xl font-bold text-blue-600">{count}</p>
+        <p className="text-2xl font-bold text-primary">{count}</p>
       </div>
     </Card>;
 };
@@ -52,30 +52,30 @@ const MonthlyStatsTable = ({
   return <div className="overflow-x-auto">
       <table className="w-full text-xs">
         <thead>
-          <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-            <th className="py-2 px-2 text-center font-semibold border border-blue-400">Mês</th>
-            <th className="py-2 px-2 text-center font-semibold border border-blue-400">Sucesso</th>
-            <th className="py-2 px-2 text-center font-semibold border border-blue-400">Parcial</th>
-            <th className="py-2 px-2 text-center font-semibold border border-blue-400">Rollback</th>
-            <th className="py-2 px-2 text-center font-semibold border border-blue-400">Cancelado</th>
-            <th className="py-2 px-2 text-center font-semibold border border-blue-400">Não Exec.</th>
-            <th className="py-2 px-2 text-center font-semibold border border-blue-400">Total</th>
-            <th className="py-2 px-2 text-center font-semibold border border-blue-400">% Cancel.</th>
+          <tr className="gradient-header text-white">
+            <th className="py-2 px-2 text-center font-semibold border border-primary">Mês</th>
+            <th className="py-2 px-2 text-center font-semibold border border-primary">Sucesso</th>
+            <th className="py-2 px-2 text-center font-semibold border border-primary">Parcial</th>
+            <th className="py-2 px-2 text-center font-semibold border border-primary">Rollback</th>
+            <th className="py-2 px-2 text-center font-semibold border border-primary">Cancelado</th>
+            <th className="py-2 px-2 text-center font-semibold border border-primary">Não Exec.</th>
+            <th className="py-2 px-2 text-center font-semibold border border-primary">Total</th>
+            <th className="py-2 px-2 text-center font-semibold border border-primary">% Cancel.</th>
           </tr>
         </thead>
         <tbody>
           {months.map((month, index) => {
           const data = monthlyData[month];
           const cancelPercentage = data.total > 0 ? (data.canceled / data.total * 100).toFixed(1) : '0.0';
-          return <tr key={month} className={index % 2 === 0 ? 'bg-blue-50' : 'bg-white'}>
-                <td className="py-2 px-2 text-left font-medium border border-blue-200">{month}</td>
-                <td className="py-2 px-2 text-center border border-blue-200">{data.success}</td>
-                <td className="py-2 px-2 text-center border border-blue-200">{data.partial}</td>
-                <td className="py-2 px-2 text-center border border-blue-200">{data.rollback}</td>
-                <td className="py-2 px-2 text-center border border-blue-200">{data.canceled}</td>
-                <td className="py-2 px-2 text-center border border-blue-200">{data.notExecuted}</td>
-                <td className="py-2 px-2 text-center font-bold border border-blue-200">{data.total}</td>
-                <td className="py-2 px-2 text-center border border-blue-200">{cancelPercentage}%</td>
+          return <tr key={month} className={index % 2 === 0 ? 'bg-primary/5' : 'bg-white'}>
+                <td className="py-2 px-2 text-left font-medium border border-border">{month}</td>
+                <td className="py-2 px-2 text-center border border-border">{data.success}</td>
+                <td className="py-2 px-2 text-center border border-border">{data.partial}</td>
+                <td className="py-2 px-2 text-center border border-border">{data.rollback}</td>
+                <td className="py-2 px-2 text-center border border-border">{data.canceled}</td>
+                <td className="py-2 px-2 text-center border border-border">{data.notExecuted}</td>
+                <td className="py-2 px-2 text-center font-bold border border-border">{data.total}</td>
+                <td className="py-2 px-2 text-center border border-border">{cancelPercentage}%</td>
               </tr>;
         })}
         </tbody>
@@ -100,9 +100,9 @@ const AtividadesMarketing = () => {
       cancelPercentage
     };
   });
-  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+  return <div className="min-h-screen bg-gradient-to-br from-primary/5 to-white">
       {/* Main Header */}
-      <header className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-6 shadow-lg">
+      <header className="gradient-header text-white py-4 px-6 shadow-lg">
         <div className="container mx-auto">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
