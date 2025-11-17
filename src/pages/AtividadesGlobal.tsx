@@ -35,7 +35,7 @@ const AtividadesGlobal = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="gradient-header text-white py-6 px-6 shadow-elevated">
+      <header className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-6 px-6 shadow-elevated">
         <div className="container mx-auto flex items-center gap-4">
           <Button
             variant="ghost"
@@ -95,12 +95,12 @@ const AtividadesGlobal = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="p-6 shadow-card">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <Clock className="w-6 h-6 text-blue-600" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Atividades</p>
-                <p className="text-3xl font-bold text-primary">{totalActivities}</p>
+                <p className="text-3xl font-bold text-blue-600">{totalActivities}</p>
               </div>
             </div>
           </Card>

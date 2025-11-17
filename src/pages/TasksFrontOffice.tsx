@@ -12,29 +12,29 @@ const TasksFrontOffice = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="bg-primary text-primary-foreground p-6 rounded-lg shadow-lg">
-          <Link to="/" className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors mb-4">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-lg shadow-lg">
+          <Link to="/" className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-4">
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Link>
           <h1 className="text-3xl font-bold">
             PORTAL ATIVIDADES PROGRAMADAS – PLATAFORMA DE TV – Front Office (TASK)
           </h1>
-          <p className="text-sm mt-2 text-primary-foreground/80">
+          <p className="text-sm mt-2 text-white/80">
             Relógio com data e hora atual
           </p>
         </div>
 
         {/* KPIs - Linha 1 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-card/80 backdrop-blur border-primary/20">
+          <Card className="bg-card/80 backdrop-blur border-blue-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground text-center">
                 TOTAL DE ATIVIDADES
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-primary text-center">
+              <div className="text-4xl font-bold text-blue-600 text-center">
                 {tasksStats.totalTasks}
               </div>
             </CardContent>
