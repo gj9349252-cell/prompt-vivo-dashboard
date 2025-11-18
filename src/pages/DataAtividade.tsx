@@ -187,7 +187,7 @@ const DataAtividade = () => {
                   formatter={(value: number) => value > 0 ? value : ''}
                 />
                 {filteredEquipmentData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill="hsl(var(--primary))" />
+                  <Cell key={`cell-${index}`} fill="#660099" />
                 ))}
               </Bar>
             </BarChart>

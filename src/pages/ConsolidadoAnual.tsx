@@ -118,9 +118,9 @@ const ConsolidadoAnual = () => {
               <Line 
                 type="monotone" 
                 dataKey="successRate" 
-                stroke="hsl(var(--accent))" 
+                stroke="#660099" 
                 strokeWidth={3}
-                dot={{ r: 5, fill: "hsl(var(--accent))" }}
+                dot={{ r: 5, fill: "#660099" }}
                 activeDot={{ r: 7 }}
               />
             </LineChart>
@@ -136,8 +136,8 @@ const ConsolidadoAnual = () => {
             <AreaChart data={annualData}>
               <defs>
                 <linearGradient id="colorActivities" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#660099" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="#660099" stopOpacity={0}/>
                 </linearGradient>
               </defs>
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
@@ -153,7 +153,7 @@ const ConsolidadoAnual = () => {
               <Area 
                 type="monotone" 
                 dataKey="total" 
-                stroke="hsl(var(--primary))" 
+                stroke="#660099" 
                 strokeWidth={2}
                 fill="url(#colorActivities)" 
               />

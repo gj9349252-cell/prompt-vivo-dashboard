@@ -160,17 +160,17 @@ const AtividadesMarketing = () => {
                 <Legend wrapperStyle={{
                 fontSize: '12px'
               }} />
-                <Bar yAxisId="left" dataKey="success" stackId="a" fill="#9333EA" name="Sucesso" radius={[0, 0, 0, 0]}>
+                <Bar yAxisId="left" dataKey="success" stackId="a" fill="#660099" name="Sucesso" radius={[0, 0, 0, 0]}>
                   <LabelList dataKey="success" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
                 </Bar>
-                <Bar yAxisId="left" dataKey="partial" stackId="a" fill="#F0ABFC" name="Parcial" radius={[0, 0, 0, 0]}>
-                  <LabelList dataKey="partial" position="center" fill="#9333EA" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
+                <Bar yAxisId="left" dataKey="partial" stackId="a" fill="#9933CC" name="Parcial" radius={[0, 0, 0, 0]}>
+                  <LabelList dataKey="partial" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
                 </Bar>
-                <Bar yAxisId="left" dataKey="rollback" stackId="a" fill="#DC2626" name="Rollback" radius={[8, 8, 0, 0]}>
+                <Bar yAxisId="left" dataKey="rollback" stackId="a" fill="#440066" name="Rollback" radius={[8, 8, 0, 0]}>
                   <LabelList dataKey="rollback" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
                 </Bar>
-                <Line yAxisId="right" type="monotone" dataKey="cancelPercentage" stroke="#FBBF24" strokeWidth={2} name="% Cancelamento" dot={{
-                fill: '#FBBF24',
+                <Line yAxisId="right" type="monotone" dataKey="cancelPercentage" stroke="#F97316" strokeWidth={2} name="% Cancelamento" dot={{
+                fill: '#F97316',
                 r: 4
               }} />
               </ComposedChart>
