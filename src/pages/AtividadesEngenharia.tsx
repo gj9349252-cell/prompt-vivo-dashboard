@@ -139,7 +139,7 @@ const AtividadesEngenharia = () => {
                 }}
               />
               <Legend />
-              <Bar dataKey="success" fill="hsl(142 76% 36%)" name="Sucesso" radius={[8, 8, 0, 0]}>
+              <Bar dataKey="success" fill="#660099" name="Sucesso" radius={[8, 8, 0, 0]}>
                 <LabelList 
                   dataKey="success" 
                   position="center" 

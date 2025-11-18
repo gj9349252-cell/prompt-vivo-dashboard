@@ -172,7 +172,7 @@ const TasksFrontOffice = () => {
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="success" name="Sucesso" fill="hsl(var(--primary))" stackId="a">
+                  <Bar dataKey="success" name="Sucesso" fill="#660099" stackId="a">
                     <LabelList 
                       dataKey="success" 
                       position="center" 
@@ -182,7 +182,7 @@ const TasksFrontOffice = () => {
                       formatter={(value: number) => value > 0 ? value : ''}
                     />
                   </Bar>
-                  <Bar dataKey="partial" name="Parcial" fill="hsl(280, 60%, 50%)" stackId="a">
+                  <Bar dataKey="partial" name="Parcial" fill="#9933CC" stackId="a">
                     <LabelList 
                       dataKey="partial" 
                       position="center" 
@@ -192,7 +192,7 @@ const TasksFrontOffice = () => {
                       formatter={(value: number) => value > 0 ? value : ''}
                     />
                   </Bar>
-                  <Bar dataKey="rollback" name="Rollback" fill="hsl(280, 40%, 30%)" stackId="a">
+                  <Bar dataKey="rollback" name="Rollback" fill="#440066" stackId="a">
                     <LabelList 
                       dataKey="rollback" 
                       position="center" 

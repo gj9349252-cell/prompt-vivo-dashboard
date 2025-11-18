@@ -160,7 +160,7 @@ const AtividadesGlobal = () => {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="total" fill="hsl(var(--primary))" name="Total" radius={[8, 8, 0, 0]}>
+                <Bar dataKey="total" fill="#660099" name="Total" radius={[8, 8, 0, 0]}>
                   <LabelList 
                     dataKey="total" 
                     position="center" 
@@ -193,7 +193,7 @@ const AtividadesGlobal = () => {
                 <Line 
                   type="monotone" 
                   dataKey="success" 
-                  stroke="hsl(142 76% 36%)" 
+                  stroke="#660099" 
                   strokeWidth={3}
                   name="Sucesso"
                   dot={{ r: 4 }}
