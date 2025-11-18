@@ -11,7 +11,10 @@ const AtividadesEngenharia = () => {
 
   const totalActivities = engineeringActivities.length;
   const totalSuccess = engineeringActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
-  const totalFailed = totalActivities - totalSuccess;
+  const totalRollback = engineeringActivities.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length;
+  const totalCanceled = engineeringActivities.filter(a => a.STATUS === 'CANCELADA').length;
+  const totalPartial = engineeringActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length;
+  const totalNotExecuted = engineeringActivities.filter(a => a.STATUS === 'NÃO EXECUTADO').length;
   const successRate = totalActivities > 0 ? ((totalSuccess / totalActivities) * 100).toFixed(1) : '0';
 
   // Agrupa por mês
@@ -21,18 +24,24 @@ const AtividadesEngenharia = () => {
     const key = `${year}-${month.padStart(2, '0')}`;
     
     if (!acc[key]) {
-      acc[key] = { success: 0, failed: 0, total: 0 };
+      acc[key] = { success: 0, rollback: 0, canceled: 0, partial: 0, notExecuted: 0, total: 0 };
     }
     
     acc[key].total++;
     if (activity.STATUS === 'REALIZADA COM SUCESSO') {
       acc[key].success++;
-    } else {
-      acc[key].failed++;
+    } else if (activity.STATUS === 'REALIZADO ROLLBACK') {
+      acc[key].rollback++;
+    } else if (activity.STATUS === 'CANCELADA') {
+      acc[key].canceled++;
+    } else if (activity.STATUS === 'REALIZADA PARCIALMENTE') {
+      acc[key].partial++;
+    } else if (activity.STATUS === 'NÃO EXECUTADO') {
+      acc[key].notExecuted++;
     }
     
     return acc;
-  }, {} as Record<string, { success: number; failed: number; total: number }>);
+  }, {} as Record<string, { success: number; rollback: number; canceled: number; partial: number; notExecuted: number; total: number }>);
 
   const monthlyData = Object.entries(monthlyStats)
     .sort(([a], [b]) => a.localeCompare(b))
@@ -42,7 +51,10 @@ const AtividadesEngenharia = () => {
       return {
         month: monthNames[parseInt(month) - 1],
         success: stats.success,
-        failed: stats.failed,
+        rollback: stats.rollback,
+        canceled: stats.canceled,
+        partial: stats.partial,
+        notExecuted: stats.notExecuted,
         total: stats.total
       };
     });
@@ -99,12 +111,51 @@ const AtividadesEngenharia = () => {
 
           <Card className="p-6 shadow-card">
             <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
+                <XCircle className="w-6 h-6 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Rollback</p>
+                <p className="text-3xl font-bold text-orange-600">{totalRollback}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 shadow-card">
+            <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
                 <XCircle className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Com Falhas</p>
-                <p className="text-3xl font-bold text-red-600">{totalFailed}</p>
+                <p className="text-sm text-muted-foreground">Canceladas</p>
+                <p className="text-3xl font-bold text-red-600">{totalCanceled}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* KPIs - Linha 2 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="p-6 shadow-card">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                <Clock className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Parciais</p>
+                <p className="text-3xl font-bold text-yellow-600">{totalPartial}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 shadow-card">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-gray-500/10 flex items-center justify-center">
+                <XCircle className="w-6 h-6 text-gray-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Não Executadas</p>
+                <p className="text-3xl font-bold text-gray-600">{totalNotExecuted}</p>
               </div>
             </div>
           </Card>
@@ -139,7 +190,7 @@ const AtividadesEngenharia = () => {
                 }}
               />
               <Legend />
-              <Bar dataKey="success" fill="#660099" name="Sucesso" radius={[8, 8, 0, 0]}>
+              <Bar dataKey="success" fill="#660099" name="Sucesso" radius={[8, 8, 0, 0]} stackId="a">
                 <LabelList 
                   dataKey="success" 
                   position="center" 
@@ -149,9 +200,39 @@ const AtividadesEngenharia = () => {
                   formatter={(value: number) => value > 0 ? value : ''}
                 />
               </Bar>
-              <Bar dataKey="failed" fill="hsl(0 84% 60%)" name="Falhas" radius={[8, 8, 0, 0]}>
+              <Bar dataKey="rollback" fill="#9933CC" name="Rollback" radius={[8, 8, 0, 0]} stackId="a">
                 <LabelList 
-                  dataKey="failed" 
+                  dataKey="rollback" 
+                  position="center" 
+                  fill="white" 
+                  fontSize={12}
+                  fontWeight="bold"
+                  formatter={(value: number) => value > 0 ? value : ''}
+                />
+              </Bar>
+              <Bar dataKey="canceled" fill="#EF4444" name="Canceladas" radius={[8, 8, 0, 0]} stackId="a">
+                <LabelList 
+                  dataKey="canceled" 
+                  position="center" 
+                  fill="white" 
+                  fontSize={12}
+                  fontWeight="bold"
+                  formatter={(value: number) => value > 0 ? value : ''}
+                />
+              </Bar>
+              <Bar dataKey="partial" fill="#F59E0B" name="Parciais" radius={[8, 8, 0, 0]} stackId="a">
+                <LabelList 
+                  dataKey="partial" 
+                  position="center" 
+                  fill="white" 
+                  fontSize={12}
+                  fontWeight="bold"
+                  formatter={(value: number) => value > 0 ? value : ''}
+                />
+              </Bar>
+              <Bar dataKey="notExecuted" fill="#6B7280" name="Não Executadas" radius={[8, 8, 0, 0]} stackId="a">
+                <LabelList 
+                  dataKey="notExecuted" 
                   position="center" 
                   fill="white" 
                   fontSize={12}
