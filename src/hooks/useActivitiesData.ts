@@ -64,6 +64,28 @@ const formatBrazilianDate = (dateStr: string): string => {
   }
 };
 
+// Helper functions for activity classification
+const isTask = (activity: Activity): boolean => 
+  activity['TAREFA (TASK)'] === 1 || activity['TASK'] === 1;
+
+const isWoSemTP = (activity: Activity): boolean => 
+  activity['STATUS'] === 'WO EXECUTADA SEM TP';
+
+const isRealizada = (activity: Activity): boolean => {
+  const status = activity.STATUS;
+  return status === 'REALIZADA COM SUCESSO' || 
+         status === 'REALIZADA PARCIALMENTE' || 
+         status === 'REALIZADO ROLLBACK' || 
+         status === 'AUTORIZADA';
+};
+
+const isNaoRealizada = (activity: Activity): boolean => {
+  const status = activity.STATUS;
+  return status === 'NÃO EXECUTADO' || 
+         status === 'CANCELADA' || 
+         isWoSemTP(activity);
+};
+
 export const useActivitiesData = () => {
   const data = useMemo(() => {
     const rawData = (activitiesData as any)["Base Atividades"] as Activity[];
@@ -163,21 +185,41 @@ export const useActivitiesData = () => {
   }, [globalActivities]);
 
   const annualStats = useMemo(() => {
-    const monthMap: Record<string, { total: number; success: number }> = {};
+    // Exclude WO sem TP from annual stats
+    const filteredData = data.filter(activity => !isWoSemTP(activity));
+    
+    const monthMap: Record<string, { 
+      total: number; 
+      success: number; 
+      canceled: number;
+    }> = {};
+    
+    const woSemTPMap: Record<string, number> = {};
 
-    data.forEach(activity => {
+    filteredData.forEach(activity => {
       const month = String(activity['MÊS']);
       const year = String(activity['ANO']);
       const key = `${year}-${month.padStart(2, '0')}`;
 
       if (!monthMap[key]) {
-        monthMap[key] = { total: 0, success: 0 };
+        monthMap[key] = { total: 0, success: 0, canceled: 0 };
       }
 
       monthMap[key].total++;
       if (activity.STATUS === 'REALIZADA COM SUCESSO') {
         monthMap[key].success++;
       }
+      if (activity.STATUS === 'CANCELADA') {
+        monthMap[key].canceled++;
+      }
+    });
+    
+    // Count WO sem TP separately by month
+    data.filter(isWoSemTP).forEach(activity => {
+      const month = String(activity['MÊS']);
+      const year = String(activity['ANO']);
+      const key = `${year}-${month.padStart(2, '0')}`;
+      woSemTPMap[key] = (woSemTPMap[key] || 0) + 1;
     });
 
     const monthlyData = Object.entries(monthMap)
@@ -188,12 +230,14 @@ export const useActivitiesData = () => {
         return {
           month: monthNames[parseInt(month) - 1],
           total: stats.total,
+          canceled: stats.canceled,
+          woSemTP: woSemTPMap[key] || 0,
           successRate: stats.total > 0 ? (stats.success / stats.total) * 100 : 0
         };
       });
 
-    const totalActivities = data.length;
-    const successfulActivities = data.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
+    const totalActivities = filteredData.length;
+    const successfulActivities = filteredData.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
     const avgSuccessRate = totalActivities > 0 ? (successfulActivities / totalActivities) * 100 : 0;
 
     const bestMonth = monthlyData.reduce((best, current) => 
@@ -214,7 +258,15 @@ export const useActivitiesData = () => {
   }, [data]);
 
   const tasksStats = useMemo(() => {
-    const tasks = data.filter(activity => activity['Área Solicitante'] === 'FRONT OFFICE');
+    const frontOfficeActivities = data.filter(activity => activity['Área Solicitante'] === 'FRONT OFFICE');
+    const tasks = frontOfficeActivities.filter(isTask);
+    const workOrders = frontOfficeActivities.filter(a => !isTask(a));
+    const woSemTP = frontOfficeActivities.filter(isWoSemTP);
+    
+    const total = frontOfficeActivities.length;
+    const realizadas = frontOfficeActivities.filter(isRealizada).length;
+    const naoRealizadas = frontOfficeActivities.filter(isNaoRealizada).length;
+    const participacao = data.length > 0 ? (total / data.length) * 100 : 0;
     
     const monthMap: Record<string, { 
       success: number; 
@@ -228,7 +280,7 @@ export const useActivitiesData = () => {
       total: number 
     }> = {};
 
-    tasks.forEach(activity => {
+    frontOfficeActivities.forEach(activity => {
       const month = String(activity['MÊS']);
       const year = String(activity['ANO']);
       const key = `${year}-${month.padStart(2, '0')}`;
@@ -292,17 +344,31 @@ export const useActivitiesData = () => {
       });
 
     const totalTasks = tasks.length;
-    const totalSuccess = tasks.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
-    const totalPartial = tasks.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length;
-    const totalRollback = tasks.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length;
-    const totalAuthorized = tasks.filter(a => a.STATUS === 'AUTORIZADA').length;
-    const totalCanceled = tasks.filter(a => a.STATUS === 'CANCELADA').length;
-    const totalNotExecuted = tasks.filter(a => a.STATUS === 'NÃO EXECUTADO').length;
-    const totalPendingDoc = tasks.filter(a => a.STATUS === 'PENDENTE DOCUMENTAÇÃO').length;
-    const totalWoExecuted = tasks.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length;
+    const totalWorkOrders = workOrders.length;
+    const totalSuccess = frontOfficeActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
+    const totalPartial = frontOfficeActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length;
+    const totalRollback = frontOfficeActivities.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length;
+    const totalAuthorized = frontOfficeActivities.filter(a => a.STATUS === 'AUTORIZADA').length;
+    const totalCanceled = frontOfficeActivities.filter(a => a.STATUS === 'CANCELADA').length;
+    const totalNotExecuted = frontOfficeActivities.filter(a => a.STATUS === 'NÃO EXECUTADO').length;
+    const totalPendingDoc = frontOfficeActivities.filter(a => a.STATUS === 'PENDENTE DOCUMENTAÇÃO').length;
+    const totalWoExecuted = woSemTP.length;
+    
+    // Equipment counts for WO sem TP
+    const woSemTPEquipment: Record<string, number> = {};
+    equipmentFields.forEach(field => {
+      woSemTPEquipment[field] = woSemTP.filter(
+        a => a[field as keyof Activity] === 1
+      ).length;
+    });
 
     return {
+      total,
+      realizadas,
+      naoRealizadas,
+      participacao,
       totalTasks,
+      totalWorkOrders,
       totalSuccess,
       totalPartial,
       totalRollback,
@@ -311,9 +377,10 @@ export const useActivitiesData = () => {
       totalNotExecuted,
       totalPendingDoc,
       totalWoExecuted,
+      woSemTPEquipment,
       monthlyData
     };
-  }, [data]);
+  }, [data, equipmentFields]);
 
   const getActivitiesByEquipment = (equipmentName: string) => {
     return data.filter(activity => {
@@ -325,6 +392,29 @@ export const useActivitiesData = () => {
     return data.filter(activity => activity['Área Solicitante'] === 'ENGENHARIA');
   }, [data]);
 
+  const engineeringStats = useMemo(() => {
+    const total = engineeringActivities.length;
+    const realizadas = engineeringActivities.filter(isRealizada).length;
+    const naoRealizadas = engineeringActivities.filter(isNaoRealizada).length;
+    const participacao = data.length > 0 ? (total / data.length) * 100 : 0;
+    
+    // Equipment counts
+    const equipmentCounts: Record<string, number> = {};
+    equipmentFields.forEach(field => {
+      equipmentCounts[field] = engineeringActivities.filter(
+        a => a[field as keyof Activity] === 1
+      ).length;
+    });
+    
+    return {
+      total,
+      realizadas,
+      naoRealizadas,
+      participacao,
+      equipmentCounts
+    };
+  }, [engineeringActivities, data, equipmentFields]);
+
   const marketingActivities = useMemo(() => {
     return data.filter(activity => activity['Área Solicitante'] === 'MARKETING' || activity['Área Solicitante'] === 'MKT CONTEÚDOS');
   }, [data]);
@@ -335,6 +425,11 @@ export const useActivitiesData = () => {
 
   // Marketing Stats - Detailed monthly statistics
   const marketingStats = useMemo(() => {
+    const total = marketingActivities.length;
+    const realizadas = marketingActivities.filter(isRealizada).length;
+    const naoRealizadas = marketingActivities.filter(isNaoRealizada).length;
+    const participacao = data.length > 0 ? (total / data.length) * 100 : 0;
+    
     const monthlyData: Record<string, {
       success: number;
       partial: number;
@@ -400,24 +495,36 @@ export const useActivitiesData = () => {
       if (activity['Outras Configurações'] === 1) equipmentCounts['Outras Configurações']++;
     });
 
-    // Participation percentage
-    const totalActivities = data.length;
-    const participationPercentage = totalActivities > 0 
-      ? ((marketingActivities.length / totalActivities) * 100).toFixed(1)
-      : '0';
-
     // Partial activities list
     const partialActivities = marketingActivities.filter(
       activity => activity.STATUS === 'REALIZADA PARCIALMENTE'
     );
 
     return {
+      total,
+      realizadas,
+      naoRealizadas,
+      participacao,
       monthlyData,
       equipmentCounts,
-      participationPercentage,
       partialActivities
     };
   }, [marketingActivities, data]);
+
+  // Global Demand (Tasks + Work Orders)
+  const demandaGlobal = useMemo(() => {
+    const tasks = data.filter(isTask);
+    const workOrders = data.filter(a => !isTask(a));
+    
+    return {
+      totalTasks: tasks.length,
+      totalWorkOrders: workOrders.length,
+      total: data.length,
+      realizadas: data.filter(isRealizada).length,
+      naoRealizadas: data.filter(isNaoRealizada).length,
+      participacao: 100 // Global always 100%
+    };
+  }, [data]);
 
   return {
     data,
@@ -428,8 +535,10 @@ export const useActivitiesData = () => {
     tasksStats,
     getActivitiesByEquipment,
     engineeringActivities,
+    engineeringStats,
     marketingActivities,
     platformActivities,
-    marketingStats
+    marketingStats,
+    demandaGlobal
   };
 };

@@ -134,7 +134,7 @@ const AtividadesMarketing = () => {
           <EquipmentCard title="Novos Canais" count={marketingStats.equipmentCounts['Novos Canais']} />
           <EquipmentCard title="Novas Cidades" count={marketingStats.equipmentCounts['Novas Cidades']} />
           <EquipmentCard title="Outras Config." count={marketingStats.equipmentCounts['Outras Configurações']} />
-          <EquipmentCard title="Participação" count={`${marketingStats.participationPercentage}%`} />
+          <EquipmentCard title="Participação" count={`${marketingStats.participacao.toFixed(1)}%`} />
         </div>
 
         {/* Two Column Layout */}
