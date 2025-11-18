@@ -363,6 +363,9 @@ export const useActivitiesData = () => {
     });
 
     return {
+      frontOfficeActivities,
+      tasks,
+      workOrders,
       total,
       realizadas,
       naoRealizadas,

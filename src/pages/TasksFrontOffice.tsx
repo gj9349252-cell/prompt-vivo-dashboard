@@ -4,9 +4,19 @@ import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, ComposedChart, LabelList } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useMemo } from "react";
 
 const TasksFrontOffice = () => {
   const { tasksStats } = useActivitiesData();
+  const [filterType, setFilterType] = useState<"all" | "tasks" | "workorders">("all");
+
+  // Filtrar atividades baseado na seleção
+  const filteredActivities = useMemo(() => {
+    if (filterType === "tasks") return tasksStats.tasks;
+    if (filterType === "workorders") return tasksStats.workOrders;
+    return tasksStats.frontOfficeActivities;
+  }, [filterType, tasksStats]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -24,6 +34,23 @@ const TasksFrontOffice = () => {
             Relógio com data e hora atual
           </p>
         </div>
+
+        {/* Filter Tabs */}
+        <Card className="p-6 shadow-card">
+          <Tabs value={filterType} onValueChange={(value) => setFilterType(value as "all" | "tasks" | "workorders")}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="all">
+                Todos ({tasksStats.frontOfficeActivities.length})
+              </TabsTrigger>
+              <TabsTrigger value="tasks">
+                TASKs ({tasksStats.tasks.length})
+              </TabsTrigger>
+              <TabsTrigger value="workorders">
+                Work Orders ({tasksStats.workOrders.length})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </Card>
 
         {/* KPIs - Linha 1 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
