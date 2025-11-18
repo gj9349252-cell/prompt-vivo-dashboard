@@ -14,7 +14,7 @@ const DataAtividade = () => {
   const [endDate, setEndDate] = useState("");
 
   const filteredEquipmentData = useMemo(() => {
-    if (!startDate && !endDate) return equipmentData;
+    if (!startDate) return equipmentData;
 
     const filteredActivities = data.filter(activity => {
       const activityDate = activity['DATA/HORA INÍCIO'];
@@ -27,9 +27,8 @@ const DataAtividade = () => {
       // Converter para formato ISO: YYYY-MM-DD
       const activityFullDate = `${year}-${month}-${day}`;
 
-      if (startDate && activityFullDate < startDate) return false;
-      if (endDate && activityFullDate > endDate) return false;
-      return true;
+      // Filtrar apenas pela data específica selecionada
+      return activityFullDate === startDate;
     });
 
     const equipmentFields = [
@@ -78,7 +77,7 @@ const DataAtividade = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">DATA / TIPO ATIVIDADE</h1>
-            <p className="text-white/90 text-sm mt-1">Análise de falhas por equipamento</p>
+            <p className="text-white/90 text-sm mt-1">Análise por tipo de equipamento e data</p>
           </div>
         </div>
       </header>
@@ -90,34 +89,28 @@ const DataAtividade = () => {
             <Filter className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-semibold text-foreground">Filtrar por Período</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Data Início</label>
+              <label className="text-sm text-muted-foreground mb-2 block">Selecionar Data</label>
               <Input 
                 type="date" 
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Data Fim</label>
-              <Input 
-                type="date" 
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setEndDate(e.target.value);
+                }}
                 className="w-full"
               />
             </div>
           </div>
-          {(startDate || endDate) && (
+          {startDate && (
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => { setStartDate(""); setEndDate(""); }}
               className="mt-4"
             >
-              Limpar Filtros
+              Limpar Filtro
             </Button>
           )}
         </Card>

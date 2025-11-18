@@ -30,6 +30,11 @@ const AtividadesGlobal = () => {
   const monthlyData = globalByMonth;
   const totalActivities = filteredActivities.length;
   const totalSuccess = filteredActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
+  const totalRollback = filteredActivities.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length;
+  const totalCanceled = filteredActivities.filter(a => a.STATUS === 'CANCELADA').length;
+  const totalPartial = filteredActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length;
+  const totalNotExecuted = filteredActivities.filter(a => a.STATUS === 'NÃO EXECUTADO').length;
+  const totalWoSemTp = filteredActivities.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length;
   const successRate = totalActivities > 0 ? ((totalSuccess / totalActivities) * 100).toFixed(1) : '0';
 
   return (
@@ -119,12 +124,63 @@ const AtividadesGlobal = () => {
 
           <Card className="p-6 shadow-card">
             <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
+                <XCircle className="w-6 h-6 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Rollback</p>
+                <p className="text-3xl font-bold text-orange-600">{totalRollback}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 shadow-card">
+            <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
                 <XCircle className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Com Falhas</p>
-                <p className="text-3xl font-bold text-red-600">{totalActivities - totalSuccess}</p>
+                <p className="text-sm text-muted-foreground">Canceladas</p>
+                <p className="text-3xl font-bold text-red-600">{totalCanceled}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* KPIs - Linha 2 */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="p-6 shadow-card">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                <Clock className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Parciais</p>
+                <p className="text-3xl font-bold text-yellow-600">{totalPartial}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 shadow-card">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-gray-500/10 flex items-center justify-center">
+                <XCircle className="w-6 h-6 text-gray-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Não Executadas</p>
+                <p className="text-3xl font-bold text-gray-600">{totalNotExecuted}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 shadow-card">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center">
+                <XCircle className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">WO sem TP</p>
+                <p className="text-3xl font-bold text-purple-600">{totalWoSemTp}</p>
               </div>
             </div>
           </Card>
