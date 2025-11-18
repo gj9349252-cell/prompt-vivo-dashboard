@@ -20,12 +20,23 @@ const DataAtividade = () => {
       const activityDate = activity['DATA/HORA INÍCIO'];
       if (!activityDate) return false;
       
-      // Formato já convertido: "DD/MM/YYYY"
+      // Formato pode ser "DD/MM/YY" ou "DD/MM/YYYY"
       const [day, month, year] = activityDate.split('/');
       if (!day || !month || !year) return false;
       
+      // Converter ano de 2 dígitos para 4 dígitos se necessário
+      let fullYear = year;
+      if (year.length === 2) {
+        const yearNum = parseInt(year, 10);
+        fullYear = yearNum < 50 ? `20${year}` : `19${year}`;
+      }
+      
+      // Garantir padding de zeros
+      const paddedDay = day.padStart(2, '0');
+      const paddedMonth = month.padStart(2, '0');
+      
       // Converter para formato ISO: YYYY-MM-DD
-      const activityFullDate = `${year}-${month}-${day}`;
+      const activityFullDate = `${fullYear}-${paddedMonth}-${paddedDay}`;
 
       // Filtrar apenas pela data específica selecionada
       return activityFullDate === startDate;
