@@ -37,6 +37,43 @@ const AtividadesGlobal = () => {
   const totalWoSemTp = filteredActivities.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length;
   const successRate = totalActivities > 0 ? ((totalSuccess / totalActivities) * 100).toFixed(1) : '0';
 
+  // Prepare monthly status data for stacked bar chart
+  const monthlyStatusData = useMemo(() => {
+    const monthsMap: Record<string, any> = {};
+    
+    filteredActivities.forEach(activity => {
+      const date = activity['DATA/HORA INÍCIO'];
+      const [day, month, year] = date.split('/');
+      const monthKey = `${month}/${year}`;
+      
+      if (!monthsMap[monthKey]) {
+        monthsMap[monthKey] = {
+          month: monthKey,
+          sucesso: 0,
+          rollback: 0,
+          cancelada: 0,
+          parcial: 0,
+          naoExecutado: 0,
+          woSemTp: 0
+        };
+      }
+      
+      const status = activity.STATUS;
+      if (status === 'REALIZADA COM SUCESSO') monthsMap[monthKey].sucesso++;
+      else if (status === 'REALIZADO ROLLBACK') monthsMap[monthKey].rollback++;
+      else if (status === 'CANCELADA') monthsMap[monthKey].cancelada++;
+      else if (status === 'REALIZADA PARCIALMENTE') monthsMap[monthKey].parcial++;
+      else if (status === 'NÃO EXECUTADO') monthsMap[monthKey].naoExecutado++;
+      else if (status === 'WO EXECUTADA SEM TP') monthsMap[monthKey].woSemTp++;
+    });
+    
+    return Object.values(monthsMap).sort((a: any, b: any) => {
+      const [monthA, yearA] = a.month.split('/');
+      const [monthB, yearB] = b.month.split('/');
+      return yearA === yearB ? parseInt(monthA) - parseInt(monthB) : parseInt(yearA) - parseInt(yearB);
+    });
+  }, [filteredActivities]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -232,10 +269,10 @@ const AtividadesGlobal = () => {
 
           <Card className="p-6 shadow-card">
             <h2 className="text-xl font-bold text-foreground mb-6">
-              Sucesso vs Falhas
+              Status Mensais
             </h2>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={monthlyData}>
+              <BarChart data={monthlyStatusData}>
                 <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
                 <YAxis hide={true} />
                 <Tooltip 
@@ -246,23 +283,13 @@ const AtividadesGlobal = () => {
                   }}
                 />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="success" 
-                  stroke="#660099" 
-                  strokeWidth={3}
-                  name="Sucesso"
-                  dot={{ r: 4 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="failed" 
-                  stroke="hsl(0 84% 60%)" 
-                  strokeWidth={3}
-                  name="Falhas"
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
+                <Bar dataKey="sucesso" stackId="a" fill="#660099" name="Sucesso" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="rollback" stackId="a" fill="#9933CC" name="Rollback" />
+                <Bar dataKey="cancelada" stackId="a" fill="#EF4444" name="Cancelada" />
+                <Bar dataKey="parcial" stackId="a" fill="#F59E0B" name="Parcial" />
+                <Bar dataKey="naoExecutado" stackId="a" fill="#64748B" name="Não Executado" />
+                <Bar dataKey="woSemTp" stackId="a" fill="#94A3B8" name="WO sem TP" />
+              </BarChart>
             </ResponsiveContainer>
           </Card>
         </div>

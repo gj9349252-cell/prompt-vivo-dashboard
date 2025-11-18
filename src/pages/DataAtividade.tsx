@@ -115,16 +115,29 @@ const DataAtividade = () => {
             </div>
           </div>
           {startDate && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => { setStartDate(""); setEndDate(""); }}
-              className="mt-4"
-            >
-              Limpar Filtro
-            </Button>
+            <div className="mt-4 flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                <span className="font-semibold text-primary">{totalOccurrences}</span> ocorrências encontradas na data selecionada
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => { setStartDate(""); setEndDate(""); }}
+              >
+                Limpar Filtro
+              </Button>
+            </div>
           )}
         </Card>
+
+        {/* No Results Message */}
+        {startDate && totalOccurrences === 0 && (
+          <Card className="p-8 shadow-card mb-8 text-center">
+            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Nenhuma atividade encontrada</h3>
+            <p className="text-sm text-muted-foreground">Não há registros para a data selecionada.</p>
+          </Card>
+        )}
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
