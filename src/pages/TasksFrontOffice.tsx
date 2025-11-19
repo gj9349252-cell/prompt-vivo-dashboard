@@ -18,6 +18,91 @@ const TasksFrontOffice = () => {
     return tasksStats.frontOfficeActivities;
   }, [filterType, tasksStats]);
 
+  // Calcular KPIs baseados no filtro ativo
+  const filteredKPIs = useMemo(() => {
+    return {
+      total: filteredActivities.length,
+      success: filteredActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length,
+      partial: filteredActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length,
+      rollback: filteredActivities.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length,
+      authorized: filteredActivities.filter(a => a.STATUS === 'AUTORIZADA').length,
+      canceled: filteredActivities.filter(a => a.STATUS === 'CANCELADA').length,
+      notExecuted: filteredActivities.filter(a => a.STATUS === 'NÃO EXECUTADO').length,
+      pendingDoc: filteredActivities.filter(a => a.STATUS === 'PENDENTE DOCUMENTAÇÃO').length,
+      woExecuted: filteredActivities.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length
+    };
+  }, [filteredActivities]);
+
+  // Calcular dados mensais baseados no filtro ativo
+  const filteredMonthlyData = useMemo(() => {
+    const monthMap: Record<string, { 
+      success: number; 
+      partial: number; 
+      rollback: number; 
+      authorized: number;
+      canceled: number; 
+      notExecuted: number;
+      pendingDoc: number;
+      woExecuted: number;
+      total: number 
+    }> = {};
+
+    filteredActivities.forEach(activity => {
+      const month = String(activity['MÊS']);
+      const year = String(activity['ANO']);
+      const key = `${year}-${month.padStart(2, '0')}`;
+
+      if (!monthMap[key]) {
+        monthMap[key] = { 
+          success: 0, 
+          partial: 0, 
+          rollback: 0, 
+          authorized: 0,
+          canceled: 0, 
+          notExecuted: 0,
+          pendingDoc: 0,
+          woExecuted: 0,
+          total: 0 
+        };
+      }
+
+      monthMap[key].total++;
+      
+      const status = activity.STATUS;
+      if (status === 'REALIZADA COM SUCESSO') monthMap[key].success++;
+      else if (status === 'REALIZADA PARCIALMENTE') monthMap[key].partial++;
+      else if (status === 'REALIZADO ROLLBACK') monthMap[key].rollback++;
+      else if (status === 'AUTORIZADA') monthMap[key].authorized++;
+      else if (status === 'CANCELADA') monthMap[key].canceled++;
+      else if (status === 'NÃO EXECUTADO') monthMap[key].notExecuted++;
+      else if (status === 'PENDENTE DOCUMENTAÇÃO') monthMap[key].pendingDoc++;
+      else if (status === 'WO EXECUTADA SEM TP') monthMap[key].woExecuted++;
+    });
+
+    return Object.entries(monthMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, stats]) => {
+        const [year, month] = key.split('-');
+        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const executed = stats.success + stats.partial + stats.rollback + stats.authorized + stats.woExecuted;
+        return {
+          month: monthNames[parseInt(month) - 1],
+          success: stats.success,
+          partial: stats.partial,
+          rollback: stats.rollback,
+          authorized: stats.authorized,
+          canceled: stats.canceled,
+          notExecuted: stats.notExecuted,
+          pendingDoc: stats.pendingDoc,
+          woExecuted: stats.woExecuted,
+          total: stats.total,
+          executed,
+          canceledPercentage: executed > 0 ? (stats.canceled / stats.total) * 100 : 0
+        };
+      });
+  }, [filteredActivities]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto p-6 space-y-6">
@@ -33,6 +118,11 @@ const TasksFrontOffice = () => {
           <p className="text-sm mt-2 text-white/80">
             Relógio com data e hora atual
           </p>
+          {filterType !== "all" && (
+            <p className="text-white/90 text-sm mt-1">
+              📊 Visualizando apenas: {filterType === "tasks" ? "TASKs" : "Work Orders"}
+            </p>
+          )}
         </div>
 
         {/* Filter Tabs */}
@@ -62,7 +152,7 @@ const TasksFrontOffice = () => {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-primary text-center">
-                {tasksStats.totalTasks}
+                {filteredKPIs.total}
               </div>
             </CardContent>
           </Card>
@@ -75,7 +165,7 @@ const TasksFrontOffice = () => {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-green-600 text-center">
-                {tasksStats.totalSuccess}
+                {filteredKPIs.success}
               </div>
             </CardContent>
           </Card>
@@ -88,7 +178,7 @@ const TasksFrontOffice = () => {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-yellow-600 text-center">
-                {tasksStats.totalPartial}
+                {filteredKPIs.partial}
               </div>
             </CardContent>
           </Card>
@@ -101,7 +191,7 @@ const TasksFrontOffice = () => {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-orange-600 text-center">
-                {tasksStats.totalRollback}
+                {filteredKPIs.rollback}
               </div>
             </CardContent>
           </Card>
@@ -117,7 +207,7 @@ const TasksFrontOffice = () => {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-blue-600 text-center">
-                {tasksStats.totalAuthorized}
+                {filteredKPIs.authorized}
               </div>
             </CardContent>
           </Card>
@@ -130,7 +220,7 @@ const TasksFrontOffice = () => {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-red-600 text-center">
-                {tasksStats.totalCanceled}
+                {filteredKPIs.canceled}
               </div>
             </CardContent>
           </Card>
@@ -143,7 +233,7 @@ const TasksFrontOffice = () => {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-gray-600 text-center">
-                {tasksStats.totalNotExecuted}
+                {filteredKPIs.notExecuted}
               </div>
             </CardContent>
           </Card>
@@ -156,7 +246,7 @@ const TasksFrontOffice = () => {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-purple-600 text-center">
-                {tasksStats.totalPendingDoc}
+                {filteredKPIs.pendingDoc}
               </div>
             </CardContent>
           </Card>
@@ -169,7 +259,7 @@ const TasksFrontOffice = () => {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-teal-600 text-center">
-                {tasksStats.totalWoExecuted}
+                {filteredKPIs.woExecuted}
               </div>
             </CardContent>
           </Card>
@@ -184,7 +274,7 @@ const TasksFrontOffice = () => {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
-                <ComposedChart data={tasksStats.monthlyData}>
+                <ComposedChart data={filteredMonthlyData}>
                   <XAxis 
                     dataKey="month" 
                     stroke="hsl(var(--foreground))"
@@ -262,7 +352,7 @@ const TasksFrontOffice = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {tasksStats.monthlyData.map((month) => (
+                    {filteredMonthlyData.map((month) => (
                       <TableRow key={month.month} className="hover:bg-primary/5">
                         <TableCell className="font-semibold text-primary">{month.month}</TableCell>
                         <TableCell className="text-center">{month.success}</TableCell>
