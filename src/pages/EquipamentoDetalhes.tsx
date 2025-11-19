@@ -1,17 +1,51 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Calendar, AlertCircle, CheckCircle2, Filter, X } from "lucide-react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
+import { useMemo } from "react";
 
 const EquipamentoDetalhes = () => {
   const navigate = useNavigate();
   const { equipmentName } = useParams<{ equipmentName: string }>();
+  const [searchParams] = useSearchParams();
+  const selectedDate = searchParams.get('date');
   const { getActivitiesByEquipment, equipmentData } = useActivitiesData();
 
   const decodedEquipmentName = equipmentName ? decodeURIComponent(equipmentName) : '';
-  const activities = getActivitiesByEquipment(decodedEquipmentName);
+  const allActivities = getActivitiesByEquipment(decodedEquipmentName);
+  
+  const activities = useMemo(() => {
+    if (!selectedDate) return allActivities;
+    
+    return allActivities.filter(activity => {
+      const activityDate = activity['DATA/HORA INÍCIO'];
+      if (!activityDate) return false;
+      
+      // Converter data brasileira DD/MM/YY para formato ISO YYYY-MM-DD
+      const [day, month, year] = activityDate.split('/');
+      if (!day || !month || !year) return false;
+      
+      let fullYear = year;
+      if (year.length === 2) {
+        const yearNum = parseInt(year, 10);
+        fullYear = yearNum < 50 ? `20${year}` : `19${year}`;
+      }
+      
+      const paddedDay = day.padStart(2, '0');
+      const paddedMonth = month.padStart(2, '0');
+      const activityFullDate = `${fullYear}-${paddedMonth}-${paddedDay}`;
+      
+      return activityFullDate === selectedDate;
+    });
+  }, [allActivities, selectedDate]);
+
   const equipmentInfo = equipmentData.find(e => e.name === decodedEquipmentName);
+  
+  const filteredTotal = activities.length;
+  const filteredPercentage = equipmentInfo && equipmentInfo.total > 0 
+    ? (filteredTotal / equipmentInfo.total) * 100 
+    : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -26,10 +60,27 @@ const EquipamentoDetalhes = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-3xl font-bold">{decodedEquipmentName}</h1>
             <p className="text-white/90 text-sm mt-1">Detalhamento de eventos por equipamento</p>
+            {selectedDate && (
+              <p className="text-white/90 text-sm mt-1 flex items-center gap-2">
+                <Filter className="w-4 h-4" />
+                Filtrado por: {new Date(selectedDate).toLocaleDateString('pt-BR')}
+              </p>
+            )}
           </div>
+          {selectedDate && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(`/equipamento/${encodeURIComponent(decodedEquipmentName)}`)}
+              className="text-white hover:bg-white/20"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Limpar Filtro
+            </Button>
+          )}
         </div>
       </header>
 
@@ -42,8 +93,12 @@ const EquipamentoDetalhes = () => {
                 <AlertCircle className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total de Ocorrências</p>
-                <p className="text-3xl font-bold text-primary">{equipmentInfo?.total || 0}</p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedDate ? 'Ocorrências na Data' : 'Total de Ocorrências'}
+                </p>
+                <p className="text-3xl font-bold text-primary">
+                  {selectedDate ? filteredTotal : (equipmentInfo?.total || 0)}
+                </p>
               </div>
             </div>
           </Card>
@@ -55,7 +110,7 @@ const EquipamentoDetalhes = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Eventos Registrados</p>
-                <p className="text-3xl font-bold text-accent">{activities.length}</p>
+                <p className="text-3xl font-bold text-accent">{filteredTotal}</p>
               </div>
             </div>
           </Card>
@@ -66,8 +121,15 @@ const EquipamentoDetalhes = () => {
                 <CheckCircle2 className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Percentual do Total</p>
-                <p className="text-3xl font-bold text-green-600">{equipmentInfo?.percentage.toFixed(1)}%</p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedDate ? 'Percentual da Data' : 'Percentual do Total'}
+                </p>
+                <p className="text-3xl font-bold text-green-600">
+                  {selectedDate 
+                    ? filteredPercentage.toFixed(1)
+                    : equipmentInfo?.percentage.toFixed(1)
+                  }%
+                </p>
               </div>
             </div>
           </Card>
@@ -76,7 +138,10 @@ const EquipamentoDetalhes = () => {
         {/* Events Table */}
         <Card className="p-6 shadow-card">
           <h2 className="text-xl font-bold text-foreground mb-6">
-            Histórico de Eventos - {decodedEquipmentName}
+            {selectedDate 
+              ? `Eventos de ${new Date(selectedDate).toLocaleDateString('pt-BR')} - ${decodedEquipmentName}`
+              : `Histórico de Eventos - ${decodedEquipmentName}`
+            }
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full">

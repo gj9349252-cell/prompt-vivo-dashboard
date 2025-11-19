@@ -230,7 +230,10 @@ const DataAtividade = () => {
                   <tr 
                     key={index} 
                     className="border-b border-border hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/equipamento/${encodeURIComponent(item.name)}`)}
+                    onClick={() => {
+                      const path = `/equipamento/${encodeURIComponent(item.name)}`;
+                      navigate(startDate ? `${path}?date=${startDate}` : path);
+                    }}
                   >
                     <td className="py-3 px-4 text-foreground hover:text-primary transition-colors font-medium">
                       {item.name}
