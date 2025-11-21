@@ -283,12 +283,12 @@ const AtividadesGlobal = () => {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="sucesso" stackId="a" fill="#660099" name="Sucesso" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="sucesso" stackId="a" fill="#660099" name="Sucesso" />
                 <Bar dataKey="rollback" stackId="a" fill="#9933CC" name="Rollback" />
                 <Bar dataKey="cancelada" stackId="a" fill="#EF4444" name="Cancelada" />
                 <Bar dataKey="parcial" stackId="a" fill="#F59E0B" name="Parcial" />
                 <Bar dataKey="naoExecutado" stackId="a" fill="#64748B" name="Não Executado" />
-                <Bar dataKey="woSemTp" stackId="a" fill="#94A3B8" name="WO sem TP" />
+                <Bar dataKey="woSemTp" stackId="a" fill="#94A3B8" name="WO sem TP" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </Card>
