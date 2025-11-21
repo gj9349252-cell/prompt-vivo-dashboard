@@ -190,7 +190,7 @@ const AtividadesEngenharia = () => {
                 }}
               />
               <Legend />
-              <Bar dataKey="success" fill="#660099" name="Sucesso" radius={[8, 8, 0, 0]} stackId="a">
+              <Bar dataKey="success" fill="#660099" name="Sucesso" stackId="a">
                 <LabelList 
                   dataKey="success" 
                   position="center" 
@@ -200,7 +200,7 @@ const AtividadesEngenharia = () => {
                   formatter={(value: number) => value > 0 ? value : ''}
                 />
               </Bar>
-              <Bar dataKey="rollback" fill="#9933CC" name="Rollback" radius={[8, 8, 0, 0]} stackId="a">
+              <Bar dataKey="rollback" fill="#9933CC" name="Rollback" stackId="a">
                 <LabelList 
                   dataKey="rollback" 
                   position="center" 
@@ -210,7 +210,7 @@ const AtividadesEngenharia = () => {
                   formatter={(value: number) => value > 0 ? value : ''}
                 />
               </Bar>
-              <Bar dataKey="canceled" fill="#EF4444" name="Canceladas" radius={[8, 8, 0, 0]} stackId="a">
+              <Bar dataKey="canceled" fill="#EF4444" name="Canceladas" stackId="a">
                 <LabelList 
                   dataKey="canceled" 
                   position="center" 
@@ -220,7 +220,7 @@ const AtividadesEngenharia = () => {
                   formatter={(value: number) => value > 0 ? value : ''}
                 />
               </Bar>
-              <Bar dataKey="partial" fill="#F59E0B" name="Parciais" radius={[8, 8, 0, 0]} stackId="a">
+              <Bar dataKey="partial" fill="#F59E0B" name="Parciais" stackId="a">
                 <LabelList 
                   dataKey="partial" 
                   position="center" 
