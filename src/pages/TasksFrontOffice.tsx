@@ -247,82 +247,79 @@ const TasksFrontOffice = () => {
           </Card>
         </div>
 
-        {/* Chart and Table */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chart */}
-          <Card className="lg:col-span-2 bg-card/80 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="text-center text-primary">Consolidado Anual</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <ComposedChart data={filteredMonthlyData}>
-                  <XAxis dataKey="month" stroke="hsl(var(--foreground))" tick={{
-                  fill: 'hsl(var(--foreground))'
-                }} />
-                  <YAxis hide={true} />
-                  <Tooltip contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px'
-                }} />
-                  <Legend />
-                  <Bar dataKey="success" name="Sucesso" fill="#660099" stackId="a">
-                    <LabelList dataKey="success" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
-                  </Bar>
-                  <Bar dataKey="partial" name="Parcial" fill="#9933CC" stackId="a">
-                    <LabelList dataKey="partial" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
-                  </Bar>
-                  <Bar dataKey="rollback" name="Rollback" fill="#440066" stackId="a" radius={[8, 8, 0, 0]}>
-                    <LabelList dataKey="rollback" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
-                  </Bar>
-                  <Line type="monotone" dataKey="canceledPercentage" name="% Cancelado" stroke="#FF9800" strokeWidth={3} dot={{
-                  fill: '#FF9800',
-                  r: 5
-                }} />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+        {/* Chart */}
+        <Card className="bg-card/80 backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-center text-primary">Consolidado Anual</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={400}>
+              <ComposedChart data={filteredMonthlyData}>
+                <XAxis dataKey="month" stroke="hsl(var(--foreground))" tick={{
+                fill: 'hsl(var(--foreground))'
+              }} />
+                <YAxis hide={true} />
+                <Tooltip contentStyle={{
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px'
+              }} />
+                <Legend />
+                <Bar dataKey="success" name="Sucesso" fill="#660099" stackId="a">
+                  <LabelList dataKey="success" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
+                </Bar>
+                <Bar dataKey="partial" name="Parcial" fill="#9933CC" stackId="a">
+                  <LabelList dataKey="partial" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
+                </Bar>
+                <Bar dataKey="rollback" name="Rollback" fill="#440066" stackId="a" radius={[8, 8, 0, 0]}>
+                  <LabelList dataKey="rollback" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
+                </Bar>
+                <Line type="monotone" dataKey="canceledPercentage" name="% Cancelado" stroke="#FF9800" strokeWidth={3} dot={{
+                fill: '#FF9800',
+                r: 5
+              }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
-          {/* Table */}
-          <Card className="bg-card/80 backdrop-blur">
-            <CardContent className="p-0">
-              <div className="overflow-auto max-h-[450px]">
-                <Table>
-                  <TableHeader className="sticky top-0 bg-primary z-10">
-                  <TableRow>
-                      <TableHead className="text-primary-foreground font-bold"></TableHead>
-                      <TableHead className="text-primary-foreground font-bold text-center">Sucesso</TableHead>
-                      <TableHead className="text-primary-foreground font-bold text-center">Parcial</TableHead>
-                      <TableHead className="text-primary-foreground font-bold text-center">Rollback</TableHead>
-                      <TableHead className="text-primary-foreground font-bold text-center">Autoriz.</TableHead>
-                      <TableHead className="text-primary-foreground font-bold text-center">Cancel.</TableHead>
-                      <TableHead className="text-primary-foreground font-bold text-center">Não Exec</TableHead>
-                      <TableHead className="text-primary-foreground font-bold text-center">Pend Doc</TableHead>
-                      <TableHead className="text-primary-foreground font-bold text-center">WO s/TP</TableHead>
-                      <TableHead className="text-primary-foreground font-bold text-center">Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredMonthlyData.map(month => <TableRow key={month.month} className="hover:bg-primary/5">
-                        <TableCell className="font-semibold text-primary">{month.month}</TableCell>
-                        <TableCell className="text-center">{month.success}</TableCell>
-                        <TableCell className="text-center">{month.partial}</TableCell>
-                        <TableCell className="text-center">{month.rollback}</TableCell>
-                        <TableCell className="text-center">{month.authorized}</TableCell>
-                        <TableCell className="text-center">{month.canceled}</TableCell>
-                        <TableCell className="text-center">{month.notExecuted}</TableCell>
-                        <TableCell className="text-center">{month.pendingDoc}</TableCell>
-                        <TableCell className="text-center">{month.woExecuted}</TableCell>
-                        <TableCell className="text-center font-semibold">{month.total}</TableCell>
-                      </TableRow>)}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Table */}
+        <Card className="bg-card/80 backdrop-blur">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="sticky top-0 bg-primary z-10">
+                <TableRow>
+                    <TableHead className="text-primary-foreground font-bold"></TableHead>
+                    <TableHead className="text-primary-foreground font-bold text-center">Sucesso</TableHead>
+                    <TableHead className="text-primary-foreground font-bold text-center">Parcial</TableHead>
+                    <TableHead className="text-primary-foreground font-bold text-center">Rollback</TableHead>
+                    <TableHead className="text-primary-foreground font-bold text-center">Autoriz.</TableHead>
+                    <TableHead className="text-primary-foreground font-bold text-center">Cancel.</TableHead>
+                    <TableHead className="text-primary-foreground font-bold text-center">Não Exec</TableHead>
+                    <TableHead className="text-primary-foreground font-bold text-center">Pend Doc</TableHead>
+                    <TableHead className="text-primary-foreground font-bold text-center">WO s/TP</TableHead>
+                    <TableHead className="text-primary-foreground font-bold text-center">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredMonthlyData.map(month => <TableRow key={month.month} className="hover:bg-primary/5">
+                      <TableCell className="font-semibold text-primary">{month.month}</TableCell>
+                      <TableCell className="text-center">{month.success}</TableCell>
+                      <TableCell className="text-center">{month.partial}</TableCell>
+                      <TableCell className="text-center">{month.rollback}</TableCell>
+                      <TableCell className="text-center">{month.authorized}</TableCell>
+                      <TableCell className="text-center">{month.canceled}</TableCell>
+                      <TableCell className="text-center">{month.notExecuted}</TableCell>
+                      <TableCell className="text-center">{month.pendingDoc}</TableCell>
+                      <TableCell className="text-center">{month.woExecuted}</TableCell>
+                      <TableCell className="text-center font-semibold">{month.total}</TableCell>
+                    </TableRow>)}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>;
 };
