@@ -273,7 +273,7 @@ const TasksFrontOffice = () => {
                   <Bar dataKey="partial" name="Parcial" fill="#9933CC" stackId="a">
                     <LabelList dataKey="partial" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
                   </Bar>
-                  <Bar dataKey="rollback" name="Rollback" fill="#440066" stackId="a">
+                  <Bar dataKey="rollback" name="Rollback" fill="#440066" stackId="a" radius={[8, 8, 0, 0]}>
                     <LabelList dataKey="rollback" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
                   </Bar>
                   <Line type="monotone" dataKey="canceledPercentage" name="% Cancelado" stroke="#FF9800" strokeWidth={3} dot={{
