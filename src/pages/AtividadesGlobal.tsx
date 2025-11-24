@@ -272,7 +272,7 @@ const AtividadesGlobal = () => {
               Status Mensais
             </h2>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyStatusData}>
+              <BarChart data={monthlyStatusData} barGap={0} barCategoryGap={20}>
                 <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
                 <YAxis hide={true} />
                 <Tooltip 
@@ -283,12 +283,12 @@ const AtividadesGlobal = () => {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="sucesso" stackId="a" fill="#660099" name="Sucesso" />
-                <Bar dataKey="rollback" stackId="a" fill="#9933CC" name="Rollback" />
-                <Bar dataKey="cancelada" stackId="a" fill="#EF4444" name="Cancelada" />
-                <Bar dataKey="parcial" stackId="a" fill="#F59E0B" name="Parcial" />
-                <Bar dataKey="naoExecutado" stackId="a" fill="#64748B" name="Não Executado" />
-                <Bar dataKey="woSemTp" stackId="a" fill="#94A3B8" name="WO sem TP" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="sucesso" stackId="a" fill="#660099" name="Sucesso" stroke="none" strokeWidth={0} />
+                <Bar dataKey="rollback" stackId="a" fill="#9933CC" name="Rollback" stroke="none" strokeWidth={0} />
+                <Bar dataKey="cancelada" stackId="a" fill="#EF4444" name="Cancelada" stroke="none" strokeWidth={0} />
+                <Bar dataKey="parcial" stackId="a" fill="#F59E0B" name="Parcial" stroke="none" strokeWidth={0} />
+                <Bar dataKey="naoExecutado" stackId="a" fill="#64748B" name="Não Executado" stroke="none" strokeWidth={0} />
+                <Bar dataKey="woSemTp" stackId="a" fill="#94A3B8" name="WO sem TP" radius={[8, 8, 0, 0]} stroke="none" strokeWidth={0} />
               </BarChart>
             </ResponsiveContainer>
           </Card>
