@@ -1,23 +1,43 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Filter, CalendarIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, ComposedChart, LabelList } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
 const TasksFrontOffice = () => {
   const {
     tasksStats
   } = useActivitiesData();
   const [filterType, setFilterType] = useState<"all" | "tasks" | "workorders">("all");
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
-  // Filtrar atividades baseado na seleção
+  // Filtrar atividades baseado na seleção e datas
   const filteredActivities = useMemo(() => {
-    if (filterType === "tasks") return tasksStats.tasks;
-    if (filterType === "workorders") return tasksStats.workOrders;
-    return tasksStats.frontOfficeActivities;
-  }, [filterType, tasksStats]);
+    let activities = filterType === "tasks" ? tasksStats.tasks : 
+                     filterType === "workorders" ? tasksStats.workOrders : 
+                     tasksStats.frontOfficeActivities;
+
+    if (!startDate && !endDate) return activities;
+
+    return activities.filter(activity => {
+      const activityDate = activity['DATA/HORA INÍCIO'];
+      const [day, month, year] = activityDate.split('/');
+      const activityFullDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+      if (startDate && activityFullDate < startDate) return false;
+      if (endDate && activityFullDate > endDate) return false;
+      return true;
+    });
+  }, [filterType, tasksStats, startDate, endDate]);
 
   // Calcular KPIs baseados no filtro ativo
   const filteredKPIs = useMemo(() => {
@@ -106,6 +126,78 @@ const TasksFrontOffice = () => {
               📊 Visualizando apenas: {filterType === "tasks" ? "TASKs" : "Work Orders"}
             </p>}
         </div>
+
+        {/* Date Filter */}
+        <Card className="p-6 shadow-card">
+          <div className="flex items-center gap-4 mb-4">
+            <Filter className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Filtrar por Período</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Data Início</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Data Fim</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+          {(startDate || endDate) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => { setStartDate(undefined); setEndDate(undefined); }}
+              className="mt-4"
+            >
+              Limpar Filtros
+            </Button>
+          )}
+        </Card>
 
         {/* Filter Tabs */}
         <Card className="p-6 shadow-card">

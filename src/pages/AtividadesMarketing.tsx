@@ -1,12 +1,15 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Filter, CalendarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 // Live Clock Component
 const LiveClock = () => {
@@ -85,11 +88,70 @@ const MonthlyStatsTable = ({
 const AtividadesMarketing = () => {
   const navigate = useNavigate();
   const {
-    marketingStats
+    marketingStats,
+    marketingActivities
   } = useActivitiesData();
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
+
+  const filteredActivities = useMemo(() => {
+    if (!startDate && !endDate) return marketingActivities;
+
+    return marketingActivities.filter(activity => {
+      const activityDate = activity['DATA/HORA INÍCIO'];
+      const [day, month, year] = activityDate.split('/');
+      const activityFullDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+      if (startDate && activityFullDate < startDate) return false;
+      if (endDate && activityFullDate > endDate) return false;
+      return true;
+    });
+  }, [marketingActivities, startDate, endDate]);
+
+  const filteredStats = useMemo(() => {
+    const monthlyData: Record<string, any> = {};
+    const equipmentCounts: Record<string, number> = {
+      'MKT Conteúdos': 0,
+      'Freeview': 0,
+      'Evento Temporal': 0,
+      'Novos Canais': 0,
+      'Novas Cidades': 0,
+      'Outras Configurações': 0
+    };
+    const partialActivities: any[] = [];
+
+    filteredActivities.forEach(activity => {
+      const month = activity['MÊS'];
+      const monthName = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][month - 1];
+      
+      if (!monthlyData[monthName]) {
+        monthlyData[monthName] = { success: 0, partial: 0, rollback: 0, canceled: 0, notExecuted: 0, total: 0 };
+      }
+      
+      monthlyData[monthName].total++;
+      if (activity.STATUS === 'REALIZADA COM SUCESSO') monthlyData[monthName].success++;
+      else if (activity.STATUS === 'REALIZADA PARCIALMENTE') {
+        monthlyData[monthName].partial++;
+        partialActivities.push(activity);
+      }
+      else if (activity.STATUS === 'REALIZADO ROLLBACK') monthlyData[monthName].rollback++;
+      else if (activity.STATUS === 'CANCELADA') monthlyData[monthName].canceled++;
+      else if (activity.STATUS === 'NÃO EXECUTADO') monthlyData[monthName].notExecuted++;
+
+      const equipment = activity['EQUIPAMENTO'];
+      if (equipmentCounts.hasOwnProperty(equipment)) {
+        equipmentCounts[equipment]++;
+      }
+    });
+
+    const totalActivities = filteredActivities.length;
+    const participacao = marketingActivities.length > 0 ? (totalActivities / marketingActivities.length) * 100 : 0;
+
+    return { monthlyData, equipmentCounts, partialActivities, participacao };
+  }, [filteredActivities, marketingActivities]);
 
   // Prepare chart data
-  const chartData = Object.entries(marketingStats.monthlyData).map(([month, data]) => {
+  const chartData = Object.entries(filteredStats.monthlyData).map(([month, data]) => {
     const cancelPercentage = data.total > 0 ? parseFloat((data.canceled / data.total * 100).toFixed(1)) : 0;
     return {
       month: month.substring(0, 3),
@@ -126,15 +188,87 @@ const AtividadesMarketing = () => {
       </div>
 
       <main className="container mx-auto px-6 py-6">
+        {/* Date Filter */}
+        <Card className="p-6 shadow-card mb-6">
+          <div className="flex items-center gap-4 mb-4">
+            <Filter className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Filtrar por Período</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Data Início</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Data Fim</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+          {(startDate || endDate) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => { setStartDate(undefined); setEndDate(undefined); }}
+              className="mt-4"
+            >
+              Limpar Filtros
+            </Button>
+          )}
+        </Card>
+
         {/* Equipment Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
-          <EquipmentCard title="MKT Conteúdos" count={marketingStats.equipmentCounts['MKT Conteúdos']} />
-          <EquipmentCard title="Freeview" count={marketingStats.equipmentCounts['Freeview']} />
-          <EquipmentCard title="Evento Temporal" count={marketingStats.equipmentCounts['Evento Temporal']} />
-          <EquipmentCard title="Novos Canais" count={marketingStats.equipmentCounts['Novos Canais']} />
-          <EquipmentCard title="Novas Cidades" count={marketingStats.equipmentCounts['Novas Cidades']} />
-          <EquipmentCard title="Outras Config." count={marketingStats.equipmentCounts['Outras Configurações']} />
-          <EquipmentCard title="Participação" count={`${marketingStats.participacao.toFixed(1)}%`} />
+          <EquipmentCard title="MKT Conteúdos" count={filteredStats.equipmentCounts['MKT Conteúdos']} />
+          <EquipmentCard title="Freeview" count={filteredStats.equipmentCounts['Freeview']} />
+          <EquipmentCard title="Evento Temporal" count={filteredStats.equipmentCounts['Evento Temporal']} />
+          <EquipmentCard title="Novos Canais" count={filteredStats.equipmentCounts['Novos Canais']} />
+          <EquipmentCard title="Novas Cidades" count={filteredStats.equipmentCounts['Novas Cidades']} />
+          <EquipmentCard title="Outras Config." count={filteredStats.equipmentCounts['Outras Configurações']} />
+          <EquipmentCard title="Participação" count={`${filteredStats.participacao.toFixed(1)}%`} />
         </div>
 
         {/* Two Column Layout */}
@@ -182,19 +316,19 @@ const AtividadesMarketing = () => {
             <h2 className="text-lg font-bold text-purple-800 mb-4">
               Estatísticas Mensais
             </h2>
-            <MonthlyStatsTable monthlyData={marketingStats.monthlyData} />
+            <MonthlyStatsTable monthlyData={filteredStats.monthlyData} />
           </Card>
         </div>
 
         {/* Partial Activities Section */}
-        {marketingStats.partialActivities.length > 0 && <Card className="p-6 shadow-card">
+        {filteredStats.partialActivities.length > 0 && <Card className="p-6 shadow-card">
             <div className="bg-purple-100 -m-6 mb-4 p-3 rounded-t-lg">
               <h2 className="text-lg font-bold text-purple-800">
                 Realizada Parcialmente
               </h2>
             </div>
             <div className="space-y-2">
-              {marketingStats.partialActivities.map((activity, index) => <div key={index} className="p-3 bg-purple-50 rounded border-l-4 border-purple-400">
+              {filteredStats.partialActivities.map((activity, index) => <div key={index} className="p-3 bg-purple-50 rounded border-l-4 border-purple-400">
                   <p className="text-sm">
                     <span className="font-semibold text-purple-700">
                       TP {activity['TP \nSIGITM']}
