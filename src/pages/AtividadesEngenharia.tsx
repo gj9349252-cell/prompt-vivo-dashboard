@@ -1,24 +1,46 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Settings, CheckCircle, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, Settings, CheckCircle, XCircle, Clock, Filter, CalendarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
+import { useState, useMemo } from "react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const AtividadesEngenharia = () => {
   const navigate = useNavigate();
   const { engineeringActivities } = useActivitiesData();
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
-  const totalActivities = engineeringActivities.length;
-  const totalSuccess = engineeringActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
-  const totalRollback = engineeringActivities.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length;
-  const totalCanceled = engineeringActivities.filter(a => a.STATUS === 'CANCELADA').length;
-  const totalPartial = engineeringActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length;
-  const totalNotExecuted = engineeringActivities.filter(a => a.STATUS === 'NÃO EXECUTADO').length;
+  const filteredActivities = useMemo(() => {
+    if (!startDate && !endDate) return engineeringActivities;
+
+    return engineeringActivities.filter(activity => {
+      const activityDate = activity['DATA/HORA INÍCIO'];
+      const [day, month, year] = activityDate.split('/');
+      const activityFullDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+      if (startDate && activityFullDate < startDate) return false;
+      if (endDate && activityFullDate > endDate) return false;
+      return true;
+    });
+  }, [engineeringActivities, startDate, endDate]);
+
+  const totalActivities = filteredActivities.length;
+  const totalSuccess = filteredActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
+  const totalRollback = filteredActivities.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length;
+  const totalCanceled = filteredActivities.filter(a => a.STATUS === 'CANCELADA').length;
+  const totalPartial = filteredActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length;
+  const totalNotExecuted = filteredActivities.filter(a => a.STATUS === 'NÃO EXECUTADO').length;
   const successRate = totalActivities > 0 ? ((totalSuccess / totalActivities) * 100).toFixed(1) : '0';
 
   // Agrupa por mês
-  const monthlyStats = engineeringActivities.reduce((acc, activity) => {
+  const monthlyStats = filteredActivities.reduce((acc, activity) => {
     const month = String(activity['MÊS']);
     const year = String(activity['ANO']);
     const key = `${year}-${month.padStart(2, '0')}`;
@@ -83,6 +105,78 @@ const AtividadesEngenharia = () => {
       </header>
 
       <main className="container mx-auto px-6 py-8">
+        {/* Date Filter */}
+        <Card className="p-6 shadow-card mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <Filter className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Filtrar por Período</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Data Início</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Data Fim</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+          {(startDate || endDate) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => { setStartDate(undefined); setEndDate(undefined); }}
+              className="mt-4"
+            >
+              Limpar Filtros
+            </Button>
+          )}
+        </Card>
+
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="p-6 shadow-card">
@@ -261,7 +355,7 @@ const AtividadesEngenharia = () => {
                 </tr>
               </thead>
               <tbody>
-                {engineeringActivities.map((activity, index) => (
+                {filteredActivities.map((activity, index) => (
                   <tr key={index} className="border-b border-border hover:bg-muted/50 transition-colors">
                     <td className="py-3 px-4 text-foreground text-sm">{activity['DATA/HORA INÍCIO']}</td>
                     <td className="py-3 px-4 text-foreground">{activity['Executor da Atividade']}</td>

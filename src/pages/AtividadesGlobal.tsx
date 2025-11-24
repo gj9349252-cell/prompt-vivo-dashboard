@@ -1,17 +1,21 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle, XCircle, Clock, Filter } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Clock, Filter, CalendarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 import { useState, useMemo } from "react";
-import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const AtividadesGlobal = () => {
   const navigate = useNavigate();
   const { globalActivities, globalByMonth } = useActivitiesData();
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
   const filteredActivities = useMemo(() => {
     if (!startDate && !endDate) return globalActivities;
@@ -19,7 +23,7 @@ const AtividadesGlobal = () => {
     return globalActivities.filter(activity => {
       const activityDate = activity['DATA/HORA INÍCIO'];
       const [day, month, year] = activityDate.split('/');
-      const activityFullDate = `${year}-${month}-${day}`;
+      const activityFullDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
       if (startDate && activityFullDate < startDate) return false;
       if (endDate && activityFullDate > endDate) return false;
@@ -104,28 +108,62 @@ const AtividadesGlobal = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Data Início</label>
-              <Input 
-                type="date" 
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Data Fim</label>
-              <Input 
-                type="date" 
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           {(startDate || endDate) && (
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => { setStartDate(""); setEndDate(""); }}
+              onClick={() => { setStartDate(undefined); setEndDate(undefined); }}
               className="mt-4"
             >
               Limpar Filtros
