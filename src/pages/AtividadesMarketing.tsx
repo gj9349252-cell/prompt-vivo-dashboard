@@ -145,7 +145,7 @@ const AtividadesMarketing = () => {
               Consolidado Anual - Marketing
             </h2>
             <ResponsiveContainer width="100%" height={400}>
-              <ComposedChart data={chartData}>
+              <ComposedChart data={chartData} barGap={0} barCategoryGap={20}>
                 <XAxis dataKey="month" stroke="#6b7280" style={{
                 fontSize: '12px'
               }} />
@@ -160,13 +160,13 @@ const AtividadesMarketing = () => {
                 <Legend wrapperStyle={{
                 fontSize: '12px'
               }} />
-              <Bar yAxisId="left" dataKey="success" stackId="a" fill="#660099" name="Sucesso">
+              <Bar yAxisId="left" dataKey="success" stackId="a" fill="#660099" name="Sucesso" stroke="none" strokeWidth={0}>
                 <LabelList dataKey="success" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
               </Bar>
-              <Bar yAxisId="left" dataKey="partial" stackId="a" fill="#9933CC" name="Parcial">
+              <Bar yAxisId="left" dataKey="partial" stackId="a" fill="#9933CC" name="Parcial" stroke="none" strokeWidth={0}>
                 <LabelList dataKey="partial" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
               </Bar>
-              <Bar yAxisId="left" dataKey="rollback" stackId="a" fill="#440066" name="Rollback" radius={[8, 8, 0, 0]}>
+              <Bar yAxisId="left" dataKey="rollback" stackId="a" fill="#440066" name="Rollback" radius={[8, 8, 0, 0]} stroke="none" strokeWidth={0}>
                 <LabelList dataKey="rollback" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
               </Bar>
                 <Line yAxisId="right" type="monotone" dataKey="cancelPercentage" stroke="#F97316" strokeWidth={2} name="% Cancelamento" dot={{

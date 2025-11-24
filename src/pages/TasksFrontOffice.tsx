@@ -254,7 +254,7 @@ const TasksFrontOffice = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={400}>
-              <ComposedChart data={filteredMonthlyData}>
+              <ComposedChart data={filteredMonthlyData} barGap={0} barCategoryGap={20}>
                 <XAxis dataKey="month" stroke="hsl(var(--foreground))" tick={{
                 fill: 'hsl(var(--foreground))'
               }} />
@@ -265,13 +265,13 @@ const TasksFrontOffice = () => {
                 borderRadius: '8px'
               }} />
                 <Legend />
-                <Bar dataKey="success" name="Sucesso" fill="#660099" stackId="a">
+                <Bar dataKey="success" name="Sucesso" fill="#660099" stackId="a" stroke="none" strokeWidth={0}>
                   <LabelList dataKey="success" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
                 </Bar>
-                <Bar dataKey="partial" name="Parcial" fill="#9933CC" stackId="a">
+                <Bar dataKey="partial" name="Parcial" fill="#9933CC" stackId="a" stroke="none" strokeWidth={0}>
                   <LabelList dataKey="partial" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
                 </Bar>
-                <Bar dataKey="rollback" name="Rollback" fill="#440066" stackId="a" radius={[8, 8, 0, 0]}>
+                <Bar dataKey="rollback" name="Rollback" fill="#440066" stackId="a" radius={[8, 8, 0, 0]} stroke="none" strokeWidth={0}>
                   <LabelList dataKey="rollback" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
                 </Bar>
                 <Line type="monotone" dataKey="canceledPercentage" name="% Cancelado" stroke="#FF9800" strokeWidth={3} dot={{

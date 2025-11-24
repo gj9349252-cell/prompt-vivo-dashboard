@@ -179,7 +179,7 @@ const AtividadesEngenharia = () => {
             Atividades Mensais - Engenharia
           </h2>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlyData}>
+            <BarChart data={monthlyData} barGap={0} barCategoryGap={20}>
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
               <YAxis hide={true} />
               <Tooltip 
@@ -190,7 +190,7 @@ const AtividadesEngenharia = () => {
                 }}
               />
               <Legend />
-              <Bar dataKey="success" fill="#660099" name="Sucesso" stackId="a">
+              <Bar dataKey="success" fill="#660099" name="Sucesso" stackId="a" stroke="none" strokeWidth={0}>
                 <LabelList 
                   dataKey="success" 
                   position="center" 
@@ -200,7 +200,7 @@ const AtividadesEngenharia = () => {
                   formatter={(value: number) => value > 0 ? value : ''}
                 />
               </Bar>
-              <Bar dataKey="rollback" fill="#9933CC" name="Rollback" stackId="a">
+              <Bar dataKey="rollback" fill="#9933CC" name="Rollback" stackId="a" stroke="none" strokeWidth={0}>
                 <LabelList 
                   dataKey="rollback" 
                   position="center" 
@@ -210,7 +210,7 @@ const AtividadesEngenharia = () => {
                   formatter={(value: number) => value > 0 ? value : ''}
                 />
               </Bar>
-              <Bar dataKey="canceled" fill="#EF4444" name="Canceladas" stackId="a">
+              <Bar dataKey="canceled" fill="#EF4444" name="Canceladas" stackId="a" stroke="none" strokeWidth={0}>
                 <LabelList 
                   dataKey="canceled" 
                   position="center" 
@@ -220,7 +220,7 @@ const AtividadesEngenharia = () => {
                   formatter={(value: number) => value > 0 ? value : ''}
                 />
               </Bar>
-              <Bar dataKey="partial" fill="#F59E0B" name="Parciais" stackId="a">
+              <Bar dataKey="partial" fill="#F59E0B" name="Parciais" stackId="a" stroke="none" strokeWidth={0}>
                 <LabelList 
                   dataKey="partial" 
                   position="center" 
@@ -230,7 +230,7 @@ const AtividadesEngenharia = () => {
                   formatter={(value: number) => value > 0 ? value : ''}
                 />
               </Bar>
-              <Bar dataKey="notExecuted" fill="#6B7280" name="Não Executadas" radius={[8, 8, 0, 0]} stackId="a">
+              <Bar dataKey="notExecuted" fill="#6B7280" name="Não Executadas" radius={[8, 8, 0, 0]} stackId="a" stroke="none" strokeWidth={0}>
                 <LabelList 
                   dataKey="notExecuted" 
                   position="center" 
