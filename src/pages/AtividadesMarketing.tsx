@@ -144,10 +144,15 @@ const AtividadesMarketing = () => {
       else if (activity.STATUS === 'CANCELADA') monthlyData[monthName].canceled++;
       else if (activity.STATUS === 'NÃO EXECUTADO') monthlyData[monthName].notExecuted++;
 
-      const equipment = activity['EQUIPAMENTO'];
-      if (equipmentCounts.hasOwnProperty(equipment)) {
-        equipmentCounts[equipment]++;
+      // Count by equipment type (check individual fields)
+      if (activity['Demanda - MKT Conteúdos'] === 1 || activity['Área Solicitante'] === 'MKT CONTEÚDOS') {
+        equipmentCounts['MKT Conteúdos']++;
       }
+      if (activity['Freeview'] === 1) equipmentCounts['Freeview']++;
+      if (activity['Evento Temporal'] === 1) equipmentCounts['Evento Temporal']++;
+      if (activity['Novos Canais'] === 1) equipmentCounts['Novos Canais']++;
+      if (activity['Novas Cidades'] === 1) equipmentCounts['Novas Cidades']++;
+      if (activity['Outras Configurações'] === 1) equipmentCounts['Outras Configurações']++;
     });
 
     const totalActivities = filteredActivities.length;
