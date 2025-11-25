@@ -9,6 +9,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 // Live Clock Component
@@ -51,39 +53,49 @@ const MonthlyStatsTable = ({
 }: {
   monthlyData: Record<string, any>;
 }) => {
-  const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-  return <div className="overflow-x-auto">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="gradient-header text-white">
-            <th className="py-2 px-2 text-center font-semibold border border-primary">Mês</th>
-            <th className="py-2 px-2 text-center font-semibold border border-primary">Sucesso</th>
-            <th className="py-2 px-2 text-center font-semibold border border-primary">Parcial</th>
-            <th className="py-2 px-2 text-center font-semibold border border-primary">Rollback</th>
-            <th className="py-2 px-2 text-center font-semibold border border-primary">Cancelado</th>
-            <th className="py-2 px-2 text-center font-semibold border border-primary">Não Exec.</th>
-            <th className="py-2 px-2 text-center font-semibold border border-primary">Total</th>
-            <th className="py-2 px-2 text-center font-semibold border border-primary">% Cancel.</th>
-          </tr>
-        </thead>
-        <tbody>
-          {months.map((month, index) => {
-          const data = monthlyData[month] || { success: 0, partial: 0, rollback: 0, canceled: 0, notExecuted: 0, total: 0 };
-          const cancelPercentage = data.total > 0 ? (data.canceled / data.total * 100).toFixed(1) : '0.0';
-          return <tr key={month} className={index % 2 === 0 ? 'bg-primary/5' : 'bg-white'}>
-                <td className="py-2 px-2 text-left font-medium border border-border">{month}</td>
-                <td className="py-2 px-2 text-center border border-border">{data.success}</td>
-                <td className="py-2 px-2 text-center border border-border">{data.partial}</td>
-                <td className="py-2 px-2 text-center border border-border">{data.rollback}</td>
-                <td className="py-2 px-2 text-center border border-border">{data.canceled}</td>
-                <td className="py-2 px-2 text-center border border-border">{data.notExecuted}</td>
-                <td className="py-2 px-2 text-center font-bold border border-border">{data.total}</td>
-                <td className="py-2 px-2 text-center border border-border">{cancelPercentage}%</td>
-              </tr>;
-        })}
-        </tbody>
-      </table>
-    </div>;
+  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const monthsFull = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  
+  return (
+    <ScrollArea className="w-full">
+      <Table>
+        <TableHeader>
+          <TableRow className="gradient-header border-none hover:bg-transparent">
+            <TableHead className="text-white text-center font-semibold h-10">Mês</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">✓</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">~</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">↩</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">✕</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">—</TableHead>
+            <TableHead className="text-white text-center font-bold h-10">Σ</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">% ✕</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {monthsFull.map((monthFull, index) => {
+            const data = monthlyData[monthFull] || { success: 0, partial: 0, rollback: 0, canceled: 0, notExecuted: 0, total: 0 };
+            const cancelPercentage = data.total > 0 ? (data.canceled / data.total * 100).toFixed(1) : '0.0';
+            return (
+              <TableRow 
+                key={monthFull} 
+                className="hover:bg-purple-50/50 transition-colors border-border/30"
+              >
+                <TableCell className="text-left font-medium py-1.5 px-3">{months[index]}</TableCell>
+                <TableCell className="text-center py-1.5 px-3">{data.success}</TableCell>
+                <TableCell className="text-center py-1.5 px-3">{data.partial}</TableCell>
+                <TableCell className="text-center py-1.5 px-3">{data.rollback}</TableCell>
+                <TableCell className="text-center py-1.5 px-3">{data.canceled}</TableCell>
+                <TableCell className="text-center py-1.5 px-3">{data.notExecuted}</TableCell>
+                <TableCell className="text-center font-bold py-1.5 px-3 bg-purple-50/30">{data.total}</TableCell>
+                <TableCell className="text-center py-1.5 px-3">{cancelPercentage}%</TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
+  );
 };
 const AtividadesMarketing = () => {
   const navigate = useNavigate();
@@ -282,10 +294,10 @@ const AtividadesMarketing = () => {
           <EquipmentCard title="Participação" count={`${filteredStats.participacao.toFixed(1)}%`} />
         </div>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-          {/* Chart - 60% width */}
-          <Card className="lg:col-span-3 p-6 shadow-card">
+        {/* Stacked Layout - Full Width */}
+        <div className="space-y-6 mb-6">
+          {/* Chart - Full Width */}
+          <Card className="p-6 shadow-card">
             <h2 className="text-lg font-bold text-purple-800 mb-4">
               Consolidado Anual - Marketing
             </h2>
@@ -322,8 +334,8 @@ const AtividadesMarketing = () => {
             </ResponsiveContainer>
           </Card>
 
-          {/* Table - 40% width */}
-          <Card className="lg:col-span-2 p-6 shadow-card">
+          {/* Table - Full Width */}
+          <Card className="p-6 shadow-card">
             <h2 className="text-lg font-bold text-purple-800 mb-4">
               Estatísticas Mensais
             </h2>
