@@ -4,8 +4,8 @@ import { parse, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export interface Activity {
-  'DATA/HORA INÍCIO': string;
-  'DATA/HORA \nFIM': string;
+  'DATA/HORA INÍCIO': string | number;
+  'DATA/HORA \nFIM': string | number;
   'TP \nSIGITM': number;
   'UDO ID': string | number;
   'STATUS': string;
@@ -51,16 +51,25 @@ export interface Activity {
   'Consolidado': number;
   'Cancelado': number;
   'Não executado': number;
-  'TASK': number;
+  'TASK'?: number;
+  'Horário Comercial'?: number;
 }
 
-const formatBrazilianDate = (dateStr: string): string => {
+const formatBrazilianDate = (dateValue: string | number): string => {
   try {
-    // Novo formato: "03/01/25" (DD/MM/YY)
-    const parsed = parse(dateStr, 'dd/MM/yy', new Date());
+    // Se for número (Excel serial date)
+    if (typeof dateValue === 'number') {
+      // Converter Excel serial date para JavaScript Date
+      // Excel começa em 30/12/1899, JavaScript em 01/01/1970
+      const excelEpoch = new Date(1899, 11, 30);
+      const jsDate = new Date(excelEpoch.getTime() + dateValue * 24 * 60 * 60 * 1000);
+      return format(jsDate, 'dd/MM/yyyy', { locale: ptBR });
+    }
+    // Se for string, tentar parsear formato brasileiro
+    const parsed = parse(dateValue, 'dd/MM/yy', new Date());
     return format(parsed, 'dd/MM/yyyy', { locale: ptBR });
   } catch (error) {
-    return dateStr;
+    return String(dateValue);
   }
 };
 
@@ -88,7 +97,7 @@ const isNaoRealizada = (activity: Activity): boolean => {
 
 export const useActivitiesData = () => {
   const data = useMemo(() => {
-    const rawData = (activitiesData as any)["Base Atividades"] as Activity[];
+    const rawData = activitiesData as Activity[];
     return rawData.map(activity => ({
       ...activity,
       'DATA/HORA INÍCIO': formatBrazilianDate(activity['DATA/HORA INÍCIO']),
