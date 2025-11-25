@@ -109,7 +109,13 @@ const AtividadesMarketing = () => {
   }, [marketingActivities, startDate, endDate]);
 
   const filteredStats = useMemo(() => {
+    // Initialize all 12 months with default values
+    const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
     const monthlyData: Record<string, any> = {};
+    months.forEach(month => {
+      monthlyData[month] = { success: 0, partial: 0, rollback: 0, canceled: 0, notExecuted: 0, total: 0 };
+    });
+
     const equipmentCounts: Record<string, number> = {
       'MKT Conteúdos': 0,
       'Freeview': 0,
