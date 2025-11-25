@@ -68,7 +68,7 @@ const MonthlyStatsTable = ({
         </thead>
         <tbody>
           {months.map((month, index) => {
-          const data = monthlyData[month];
+          const data = monthlyData[month] || { success: 0, partial: 0, rollback: 0, canceled: 0, notExecuted: 0, total: 0 };
           const cancelPercentage = data.total > 0 ? (data.canceled / data.total * 100).toFixed(1) : '0.0';
           return <tr key={month} className={index % 2 === 0 ? 'bg-primary/5' : 'bg-white'}>
                 <td className="py-2 px-2 text-left font-medium border border-border">{month}</td>
