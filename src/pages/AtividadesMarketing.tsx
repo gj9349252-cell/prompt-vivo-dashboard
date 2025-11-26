@@ -173,16 +173,12 @@ const AtividadesMarketing = () => {
     return { monthlyData, equipmentCounts, partialActivities, participacao };
   }, [filteredActivities, marketingActivities]);
 
-  // Prepare chart data
+  // Prepare chart data - total + canceladas
   const chartData = Object.entries(filteredStats.monthlyData).map(([month, data]) => {
-    const cancelPercentage = data.total > 0 ? parseFloat((data.canceled / data.total * 100).toFixed(1)) : 0;
     return {
       month: month.substring(0, 3),
-      // Abreviar nome do mês
-      success: data.success,
-      partial: data.partial,
-      rollback: data.rollback,
-      cancelPercentage
+      total: data.total,
+      canceled: data.canceled
     };
   });
   return <div className="min-h-screen bg-gradient-to-br from-primary/5 to-white">
@@ -299,7 +295,7 @@ const AtividadesMarketing = () => {
           {/* Chart - Full Width */}
           <Card className="p-6 shadow-card">
             <h2 className="text-lg font-bold text-purple-800 mb-4">
-              Consolidado Anual - Marketing
+              Total de Atividades e Cancelamentos - Marketing
             </h2>
             <ResponsiveContainer width="100%" height={400}>
               <ComposedChart data={chartData} barGap={0} barCategoryGap={20}>
@@ -307,7 +303,7 @@ const AtividadesMarketing = () => {
                 fontSize: '12px'
               }} />
                 <YAxis yAxisId="left" hide={true} />
-                <YAxis yAxisId="right" orientation="right" hide={true} domain={[0, 100]} />
+                <YAxis yAxisId="right" orientation="right" hide={true} />
                 <Tooltip contentStyle={{
                 backgroundColor: "white",
                 border: "1px solid #e5e7eb",
@@ -317,19 +313,18 @@ const AtividadesMarketing = () => {
                 <Legend wrapperStyle={{
                 fontSize: '12px'
               }} />
-              <Bar yAxisId="left" dataKey="success" stackId="a" fill="#660099" name="Sucesso" stroke="none" strokeWidth={0}>
-                <LabelList dataKey="success" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
+              <Bar yAxisId="left" dataKey="total" fill="#660099" name="Total" radius={[8, 8, 0, 0]}>
+                <LabelList dataKey="total" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
               </Bar>
-              <Bar yAxisId="left" dataKey="partial" stackId="a" fill="#9933CC" name="Parcial" stroke="none" strokeWidth={0}>
-                <LabelList dataKey="partial" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
-              </Bar>
-              <Bar yAxisId="left" dataKey="rollback" stackId="a" fill="#440066" name="Rollback" radius={[8, 8, 0, 0]} stroke="none" strokeWidth={0}>
-                <LabelList dataKey="rollback" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
-              </Bar>
-                <Line yAxisId="right" type="monotone" dataKey="cancelPercentage" stroke="#F97316" strokeWidth={2} name="% Cancelamento" dot={{
-                fill: '#F97316',
-                r: 4
-              }} />
+              <Line 
+                yAxisId="right" 
+                type="monotone" 
+                dataKey="canceled" 
+                stroke="#EF4444" 
+                strokeWidth={2} 
+                name="Canceladas"
+                dot={{ fill: '#EF4444', r: 4 }}
+              />
               </ComposedChart>
             </ResponsiveContainer>
           </Card>

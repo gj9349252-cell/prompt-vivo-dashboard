@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings, CheckCircle, XCircle, Clock, Filter, CalendarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 import { useState, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
@@ -39,31 +39,23 @@ const AtividadesEngenharia = () => {
   const totalNotExecuted = filteredActivities.filter(a => a.STATUS === 'NÃO EXECUTADO').length;
   const successRate = totalActivities > 0 ? ((totalSuccess / totalActivities) * 100).toFixed(1) : '0';
 
-  // Agrupa por mês
+  // Agrupa por mês - total + canceladas
   const monthlyStats = filteredActivities.reduce((acc, activity) => {
     const month = String(activity['MÊS']);
     const year = String(activity['ANO']);
     const key = `${year}-${month.padStart(2, '0')}`;
     
     if (!acc[key]) {
-      acc[key] = { success: 0, rollback: 0, canceled: 0, partial: 0, notExecuted: 0, total: 0 };
+      acc[key] = { total: 0, canceled: 0 };
     }
     
     acc[key].total++;
-    if (activity.STATUS === 'REALIZADA COM SUCESSO') {
-      acc[key].success++;
-    } else if (activity.STATUS === 'REALIZADO ROLLBACK') {
-      acc[key].rollback++;
-    } else if (activity.STATUS === 'CANCELADA') {
+    if (activity.STATUS === 'CANCELADA') {
       acc[key].canceled++;
-    } else if (activity.STATUS === 'REALIZADA PARCIALMENTE') {
-      acc[key].partial++;
-    } else if (activity.STATUS === 'NÃO EXECUTADO') {
-      acc[key].notExecuted++;
     }
     
     return acc;
-  }, {} as Record<string, { success: number; rollback: number; canceled: number; partial: number; notExecuted: number; total: number }>);
+  }, {} as Record<string, { total: number; canceled: number }>);
 
   const monthlyData = Object.entries(monthlyStats)
     .sort(([a], [b]) => a.localeCompare(b))
@@ -72,12 +64,8 @@ const AtividadesEngenharia = () => {
       const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
       return {
         month: monthNames[parseInt(month) - 1],
-        success: stats.success,
-        rollback: stats.rollback,
-        canceled: stats.canceled,
-        partial: stats.partial,
-        notExecuted: stats.notExecuted,
-        total: stats.total
+        total: stats.total,
+        canceled: stats.canceled
       };
     });
 
@@ -270,12 +258,13 @@ const AtividadesEngenharia = () => {
         {/* Chart */}
         <Card className="p-6 shadow-card mb-8">
           <h2 className="text-xl font-bold text-foreground mb-6">
-            Atividades Mensais - Engenharia
+            Total de Atividades e Cancelamentos - Engenharia
           </h2>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlyData} barGap={0} barCategoryGap={20}>
+            <ComposedChart data={monthlyData} barGap={0} barCategoryGap={20}>
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis hide={true} />
+              <YAxis yAxisId="left" hide={true} />
+              <YAxis yAxisId="right" orientation="right" hide={true} />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: "hsl(var(--card))",
@@ -284,9 +273,9 @@ const AtividadesEngenharia = () => {
                 }}
               />
               <Legend />
-              <Bar dataKey="success" fill="#660099" name="Sucesso" stackId="a" stroke="none" strokeWidth={0}>
+              <Bar yAxisId="left" dataKey="total" fill="#660099" name="Total" radius={[8, 8, 0, 0]}>
                 <LabelList 
-                  dataKey="success" 
+                  dataKey="total" 
                   position="center" 
                   fill="white" 
                   fontSize={12}
@@ -294,47 +283,16 @@ const AtividadesEngenharia = () => {
                   formatter={(value: number) => value > 0 ? value : ''}
                 />
               </Bar>
-              <Bar dataKey="rollback" fill="#9933CC" name="Rollback" stackId="a" stroke="none" strokeWidth={0}>
-                <LabelList 
-                  dataKey="rollback" 
-                  position="center" 
-                  fill="white" 
-                  fontSize={12}
-                  fontWeight="bold"
-                  formatter={(value: number) => value > 0 ? value : ''}
-                />
-              </Bar>
-              <Bar dataKey="canceled" fill="#EF4444" name="Canceladas" stackId="a" stroke="none" strokeWidth={0}>
-                <LabelList 
-                  dataKey="canceled" 
-                  position="center" 
-                  fill="white" 
-                  fontSize={12}
-                  fontWeight="bold"
-                  formatter={(value: number) => value > 0 ? value : ''}
-                />
-              </Bar>
-              <Bar dataKey="partial" fill="#F59E0B" name="Parciais" stackId="a" stroke="none" strokeWidth={0}>
-                <LabelList 
-                  dataKey="partial" 
-                  position="center" 
-                  fill="white" 
-                  fontSize={12}
-                  fontWeight="bold"
-                  formatter={(value: number) => value > 0 ? value : ''}
-                />
-              </Bar>
-              <Bar dataKey="notExecuted" fill="#6B7280" name="Não Executadas" radius={[8, 8, 0, 0]} stackId="a" stroke="none" strokeWidth={0}>
-                <LabelList 
-                  dataKey="notExecuted" 
-                  position="center" 
-                  fill="white" 
-                  fontSize={12}
-                  fontWeight="bold"
-                  formatter={(value: number) => value > 0 ? value : ''}
-                />
-              </Bar>
-            </BarChart>
+              <Line 
+                yAxisId="right" 
+                type="monotone" 
+                dataKey="canceled" 
+                stroke="#EF4444" 
+                strokeWidth={2} 
+                name="Canceladas"
+                dot={{ fill: '#EF4444', r: 4 }}
+              />
+            </ComposedChart>
           </ResponsiveContainer>
         </Card>
 

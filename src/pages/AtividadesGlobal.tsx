@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle, XCircle, Clock, Filter, CalendarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
+import { LineChart, Line, ComposedChart, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 import { useState, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
@@ -41,7 +41,7 @@ const AtividadesGlobal = () => {
   const totalWoSemTp = filteredActivities.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length;
   const successRate = totalActivities > 0 ? ((totalSuccess / totalActivities) * 100).toFixed(1) : '0';
 
-  // Prepare monthly status data for stacked bar chart
+  // Prepare monthly status data - total + canceladas line
   const monthlyStatusData = useMemo(() => {
     const monthsMap: Record<string, any> = {};
     
@@ -53,22 +53,16 @@ const AtividadesGlobal = () => {
       if (!monthsMap[monthKey]) {
         monthsMap[monthKey] = {
           month: monthKey,
-          sucesso: 0,
-          rollback: 0,
-          cancelada: 0,
-          parcial: 0,
-          naoExecutado: 0,
-          woSemTp: 0
+          total: 0,
+          cancelada: 0
         };
       }
       
-      const status = activity.STATUS;
-      if (status === 'REALIZADA COM SUCESSO') monthsMap[monthKey].sucesso++;
-      else if (status === 'REALIZADO ROLLBACK') monthsMap[monthKey].rollback++;
-      else if (status === 'CANCELADA') monthsMap[monthKey].cancelada++;
-      else if (status === 'REALIZADA PARCIALMENTE') monthsMap[monthKey].parcial++;
-      else if (status === 'NÃO EXECUTADO') monthsMap[monthKey].naoExecutado++;
-      else if (status === 'WO EXECUTADA SEM TP') monthsMap[monthKey].woSemTp++;
+      monthsMap[monthKey].total++;
+      
+      if (activity.STATUS === 'CANCELADA') {
+        monthsMap[monthKey].cancelada++;
+      }
     });
     
     return Object.values(monthsMap).sort((a: any, b: any) => {
@@ -307,12 +301,13 @@ const AtividadesGlobal = () => {
 
           <Card className="p-6 shadow-card">
             <h2 className="text-xl font-bold text-foreground mb-6">
-              Status Mensais
+              Total de Atividades e Cancelamentos
             </h2>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyStatusData} barGap={0} barCategoryGap={20}>
+              <ComposedChart data={monthlyStatusData} barGap={0} barCategoryGap={20}>
                 <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-                <YAxis hide={true} />
+                <YAxis yAxisId="left" hide={true} />
+                <YAxis yAxisId="right" orientation="right" hide={true} />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: "hsl(var(--card))",
@@ -321,13 +316,26 @@ const AtividadesGlobal = () => {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="sucesso" stackId="a" fill="#660099" name="Sucesso" stroke="none" strokeWidth={0} />
-                <Bar dataKey="rollback" stackId="a" fill="#9933CC" name="Rollback" stroke="none" strokeWidth={0} />
-                <Bar dataKey="cancelada" stackId="a" fill="#EF4444" name="Cancelada" stroke="none" strokeWidth={0} />
-                <Bar dataKey="parcial" stackId="a" fill="#F59E0B" name="Parcial" stroke="none" strokeWidth={0} />
-                <Bar dataKey="naoExecutado" stackId="a" fill="#64748B" name="Não Executado" stroke="none" strokeWidth={0} />
-                <Bar dataKey="woSemTp" stackId="a" fill="#94A3B8" name="WO sem TP" radius={[8, 8, 0, 0]} stroke="none" strokeWidth={0} />
-              </BarChart>
+                <Bar yAxisId="left" dataKey="total" fill="#660099" name="Total" radius={[8, 8, 0, 0]}>
+                  <LabelList 
+                    dataKey="total" 
+                    position="center" 
+                    fill="white" 
+                    fontSize={12}
+                    fontWeight="bold"
+                    formatter={(value: number) => value > 0 ? value : ''}
+                  />
+                </Bar>
+                <Line 
+                  yAxisId="right" 
+                  type="monotone" 
+                  dataKey="cancelada" 
+                  stroke="#EF4444" 
+                  strokeWidth={2} 
+                  name="Canceladas"
+                  dot={{ fill: '#EF4444', r: 4 }}
+                />
+              </ComposedChart>
             </ResponsiveContainer>
           </Card>
         </div>
