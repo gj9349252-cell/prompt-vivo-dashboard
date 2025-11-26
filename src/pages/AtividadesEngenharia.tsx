@@ -23,7 +23,9 @@ const AtividadesEngenharia = () => {
     if (!startDate || !endDate) return engineeringActivities;
     
     return engineeringActivities.filter(activity => {
-      const activityDate = new Date(activity['Data início']);
+      const dateStr = activity['DATA/HORA INÍCIO'];
+      const [day, month, year] = dateStr.split('/').map(Number);
+      const activityDate = new Date(year, month - 1, day);
       return activityDate >= startDate && activityDate <= endDate;
     });
   }, [engineeringActivities, startDate, endDate]);
@@ -47,13 +49,14 @@ const AtividadesEngenharia = () => {
     const stats: Record<string, any> = {};
     
     filteredActivities.forEach(activity => {
-      const date = new Date(activity['Data início']);
-      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const month = String(activity['MÊS']);
+      const year = String(activity['ANO']);
+      const key = `${year}-${month.padStart(2, '0')}`;
       
       if (!stats[key]) {
         stats[key] = {
-          year: date.getFullYear(),
-          month: date.getMonth() + 1,
+          year: parseInt(year),
+          month: parseInt(month),
           success: 0,
           partial: 0,
           rollback: 0,
@@ -74,13 +77,16 @@ const AtividadesEngenharia = () => {
     });
 
     return Object.entries(stats)
-      .map(([key, data]) => ({
-        ...data,
-        key,
-        monthName: format(new Date(data.year, data.month - 1), 'MMM', { locale: ptBR }),
-        fullMonthName: format(new Date(data.year, data.month - 1), 'MMM/yy', { locale: ptBR }),
-        cancelPercentage: data.total > 0 ? Math.round((data.canceled / data.total) * 100) : 0
-      }))
+      .map(([key, data]) => {
+        const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        return {
+          ...data,
+          key,
+          monthName: monthNames[data.month - 1],
+          fullMonthName: `${monthNames[data.month - 1]}/${String(data.year).slice(2)}`,
+          cancelPercentage: data.total > 0 ? Math.round((data.canceled / data.total) * 100) : 0
+        };
+      })
       .sort((a, b) => a.key.localeCompare(b.key));
   }, [filteredActivities]);
 
@@ -337,7 +343,7 @@ const AtividadesEngenharia = () => {
                           TP {activity['TP \nSIGITM']} - {activity.EVENTO}
                         </p>
                         <div className="mt-2 flex gap-4 text-xs text-gray-600">
-                          <span>Data: {format(new Date(activity['Data início']), 'dd/MM/yyyy')}</span>
+                          <span>Data: {activity['DATA/HORA INÍCIO']}</span>
                           <span>Executor: {activity['Executor da Atividade']}</span>
                           <span>Severidade: {activity.SEVERIDADE}</span>
                         </div>
@@ -383,7 +389,7 @@ const AtividadesEngenharia = () => {
 
                     return (
                       <tr key={index} className="border-b hover:bg-gray-50">
-                        <td className="py-2 px-4">{format(new Date(activity['Data início']), 'dd/MM/yyyy HH:mm')}</td>
+                        <td className="py-2 px-4">{activity['DATA/HORA INÍCIO']}</td>
                         <td className="py-2 px-4">{activity['Executor da Atividade']}</td>
                         <td className="py-2 px-4 max-w-md truncate">{activity.EVENTO}</td>
                         <td className="py-2 px-4">{activity.SEVERIDADE}</td>
