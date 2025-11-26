@@ -1,15 +1,17 @@
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Settings, CheckCircle, XCircle, Clock, Filter, CalendarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
+import { ChevronLeft } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
-import { useState, useMemo } from "react";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Label } from 'recharts';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const AtividadesEngenharia = () => {
   const navigate = useNavigate();
@@ -18,56 +20,76 @@ const AtividadesEngenharia = () => {
   const [endDate, setEndDate] = useState<Date | undefined>();
 
   const filteredActivities = useMemo(() => {
-    if (!startDate && !endDate) return engineeringActivities;
-
+    if (!startDate || !endDate) return engineeringActivities;
+    
     return engineeringActivities.filter(activity => {
-      const activityDate = activity['DATA/HORA INÍCIO'];
-      const [day, month, year] = activityDate.split('/');
-      const activityFullDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-
-      if (startDate && activityFullDate < startDate) return false;
-      if (endDate && activityFullDate > endDate) return false;
-      return true;
+      const activityDate = new Date(activity['Data início']);
+      return activityDate >= startDate && activityDate <= endDate;
     });
   }, [engineeringActivities, startDate, endDate]);
 
-  const totalActivities = filteredActivities.length;
-  const totalSuccess = filteredActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
-  const totalRollback = filteredActivities.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length;
-  const totalCanceled = filteredActivities.filter(a => a.STATUS === 'CANCELADA').length;
-  const totalPartial = filteredActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length;
-  const totalNotExecuted = filteredActivities.filter(a => a.STATUS === 'NÃO EXECUTADO').length;
-  const successRate = totalActivities > 0 ? ((totalSuccess / totalActivities) * 100).toFixed(1) : '0';
+  // Calculate category counts
+  const categoryStats = useMemo(() => {
+    const total = filteredActivities.length;
+    const vsa = filteredActivities.filter(a => a.VSA === 1).length;
+    const rws = filteredActivities.filter(a => a.RWs === 1).length;
+    const rdv = filteredActivities.filter(a => a.RDV === 1).length;
+    const scdn = filteredActivities.filter(a => a.SCDN === 1).length;
+    const outrasConfig = filteredActivities.filter(a => a['Outras Configurações'] === 1).length;
+    const successCount = filteredActivities.filter(a => a.STATUS?.toUpperCase().includes('SUCESSO')).length;
+    const successRate = total > 0 ? (successCount / total) * 100 : 0;
+    
+    return { total, vsa, rws, rdv, scdn, outrasConfig, successRate };
+  }, [filteredActivities]);
 
-  // Agrupa por mês - total + canceladas
-  const monthlyStats = filteredActivities.reduce((acc, activity) => {
-    const month = String(activity['MÊS']);
-    const year = String(activity['ANO']);
-    const key = `${year}-${month.padStart(2, '0')}`;
+  // Calculate detailed monthly stats
+  const monthlyStats = useMemo(() => {
+    const stats: Record<string, any> = {};
     
-    if (!acc[key]) {
-      acc[key] = { total: 0, canceled: 0 };
-    }
-    
-    acc[key].total++;
-    if (activity.STATUS === 'CANCELADA') {
-      acc[key].canceled++;
-    }
-    
-    return acc;
-  }, {} as Record<string, { total: number; canceled: number }>);
-
-  const monthlyData = Object.entries(monthlyStats)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, stats]) => {
-      const [year, month] = key.split('-');
-      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      return {
-        month: monthNames[parseInt(month) - 1],
-        total: stats.total,
-        canceled: stats.canceled
-      };
+    filteredActivities.forEach(activity => {
+      const date = new Date(activity['Data início']);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!stats[key]) {
+        stats[key] = {
+          year: date.getFullYear(),
+          month: date.getMonth() + 1,
+          success: 0,
+          partial: 0,
+          rollback: 0,
+          canceled: 0,
+          notExecuted: 0,
+          total: 0
+        };
+      }
+      
+      stats[key].total++;
+      const status = activity.STATUS?.toUpperCase() || '';
+      
+      if (status.includes('SUCESSO')) stats[key].success++;
+      else if (status.includes('PARCIAL')) stats[key].partial++;
+      else if (status.includes('ROLLBACK')) stats[key].rollback++;
+      else if (status.includes('CANCELAD')) stats[key].canceled++;
+      else if (status.includes('NÃO EXECUTAD')) stats[key].notExecuted++;
     });
+
+    return Object.entries(stats)
+      .map(([key, data]) => ({
+        ...data,
+        key,
+        monthName: format(new Date(data.year, data.month - 1), 'MMM', { locale: ptBR }),
+        fullMonthName: format(new Date(data.year, data.month - 1), 'MMM/yy', { locale: ptBR }),
+        cancelPercentage: data.total > 0 ? Math.round((data.canceled / data.total) * 100) : 0
+      }))
+      .sort((a, b) => a.key.localeCompare(b.key));
+  }, [filteredActivities]);
+
+  // Get rollback activities
+  const rollbackActivities = useMemo(() => {
+    return filteredActivities.filter(a => 
+      a.STATUS?.toUpperCase().includes('ROLLBACK')
+    );
+  }, [filteredActivities]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -80,279 +102,303 @@ const AtividadesEngenharia = () => {
             onClick={() => navigate("/")}
             className="text-white hover:bg-white/20"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5" />
           </Button>
-          <div className="flex items-center gap-3">
-            <Settings className="w-8 h-8" />
-            <div>
-              <h1 className="text-3xl font-bold">ATIVIDADES ENGENHARIA</h1>
-              <p className="text-white/90 text-sm mt-1">Análise completa das atividades da área de Engenharia</p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold">ATIVIDADES ENGENHARIA</h1>
+            <p className="text-white/90 text-sm mt-1">Análise completa das atividades da área de Engenharia</p>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        {/* Date Filter */}
-        <Card className="p-6 shadow-card mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Filter className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground">Filtrar por Período</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Data Início</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !startDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP", { locale: ptBR }) : "Selecione a data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+        {/* Date Filter Section */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Filtrar por Período</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium">Data Inicial</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium">Data Final</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "justify-start text-left font-normal",
+                        !endDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Data Fim</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !endDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP", { locale: ptBR }) : "Selecione a data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-          {(startDate || endDate) && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => { setStartDate(undefined); setEndDate(undefined); }}
-              className="mt-4"
-            >
-              Limpar Filtros
-            </Button>
-          )}
+          </CardContent>
         </Card>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-primary" />
+        {/* Category Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
+          <Card className="bg-purple-50 border-purple-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-sm text-purple-600 font-medium mb-1">Engenharia TV</p>
+                <p className="text-3xl font-bold text-purple-900">{categoryStats.total}</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Atividades</p>
-                <p className="text-3xl font-bold text-primary">{totalActivities}</p>
-              </div>
-            </div>
+            </CardContent>
           </Card>
-
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+          
+          <Card className="bg-purple-50 border-purple-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-sm text-purple-600 font-medium mb-1">VSA</p>
+                <p className="text-3xl font-bold text-purple-900">{categoryStats.vsa}</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Realizadas com Sucesso</p>
-                <p className="text-3xl font-bold text-green-600">{totalSuccess}</p>
-              </div>
-            </div>
+            </CardContent>
           </Card>
-
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-                <XCircle className="w-6 h-6 text-orange-600" />
+          
+          <Card className="bg-purple-50 border-purple-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-sm text-purple-600 font-medium mb-1">RWs</p>
+                <p className="text-3xl font-bold text-purple-900">{categoryStats.rws}</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Rollback</p>
-                <p className="text-3xl font-bold text-orange-600">{totalRollback}</p>
-              </div>
-            </div>
+            </CardContent>
           </Card>
-
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                <XCircle className="w-6 h-6 text-red-600" />
+          
+          <Card className="bg-purple-50 border-purple-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-sm text-purple-600 font-medium mb-1">RDV</p>
+                <p className="text-3xl font-bold text-purple-900">{categoryStats.rdv}</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Canceladas</p>
-                <p className="text-3xl font-bold text-red-600">{totalCanceled}</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-purple-50 border-purple-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-sm text-purple-600 font-medium mb-1">SCDN</p>
+                <p className="text-3xl font-bold text-purple-900">{categoryStats.scdn}</p>
               </div>
-            </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-purple-50 border-purple-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-sm text-purple-600 font-medium mb-1">Outras Config</p>
+                <p className="text-3xl font-bold text-purple-900">{categoryStats.outrasConfig}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-purple-50 border-purple-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-sm text-purple-600 font-medium mb-1">Participação</p>
+                <p className="text-3xl font-bold text-purple-900">{categoryStats.successRate.toFixed(2)}%</p>
+              </div>
+            </CardContent>
           </Card>
         </div>
 
-        {/* KPIs - Linha 2 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-yellow-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Parciais</p>
-                <p className="text-3xl font-bold text-yellow-600">{totalPartial}</p>
-              </div>
-            </div>
+        {/* Chart and Table Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Monthly Activity Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Total Executado e % Cancelado</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <ComposedChart data={monthlyStats}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="monthName" />
+                  <YAxis yAxisId="left">
+                    <Label value="Total Executado" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} />
+                  </YAxis>
+                  <Tooltip />
+                  <Legend />
+                  <Bar 
+                    yAxisId="left"
+                    dataKey="total" 
+                    fill="#660099" 
+                    name="Total Executado"
+                    radius={[8, 8, 0, 0]}
+                  />
+                  <Line 
+                    yAxisId="left"
+                    type="monotone" 
+                    dataKey="cancelPercentage" 
+                    stroke="#F59E0B" 
+                    strokeWidth={2.5} 
+                    name="% Cancelado"
+                    dot={{ fill: '#F59E0B', r: 4 }}
+                    label={{ position: 'top', formatter: (value: number) => `${value}%`, fill: '#F59E0B', fontSize: 11 }}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </CardContent>
           </Card>
 
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-gray-500/10 flex items-center justify-center">
-                <XCircle className="w-6 h-6 text-gray-600" />
+          {/* Monthly Stats Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Estatísticas Mensais</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="max-h-[400px] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Mês</TableHead>
+                      <TableHead className="text-center">Sucesso</TableHead>
+                      <TableHead className="text-center">Parcial</TableHead>
+                      <TableHead className="text-center">Rollback</TableHead>
+                      <TableHead className="text-center bg-yellow-50">% Cancel</TableHead>
+                      <TableHead className="text-center">Não Exec</TableHead>
+                      <TableHead className="text-center font-bold">Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {monthlyStats.map((stat) => (
+                      <TableRow key={stat.key}>
+                        <TableCell className="font-medium">{stat.fullMonthName}</TableCell>
+                        <TableCell className="text-center text-green-700">{stat.success}</TableCell>
+                        <TableCell className="text-center text-yellow-700">{stat.partial}</TableCell>
+                        <TableCell className="text-center text-yellow-700">{stat.rollback}</TableCell>
+                        <TableCell className="text-center bg-yellow-50 font-bold text-yellow-900">
+                          {stat.cancelPercentage}%
+                        </TableCell>
+                        <TableCell className="text-center text-yellow-700">{stat.notExecuted}</TableCell>
+                        <TableCell className="text-center font-bold">{stat.total}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Não Executadas</p>
-                <p className="text-3xl font-bold text-gray-600">{totalNotExecuted}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-accent" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Taxa de Sucesso</p>
-                <p className="text-3xl font-bold text-accent">{successRate}%</p>
-              </div>
-            </div>
+            </CardContent>
           </Card>
         </div>
 
-        {/* Chart */}
-        <Card className="p-6 shadow-card mb-8">
-          <h2 className="text-xl font-bold text-foreground mb-6">
-            Total de Atividades e Cancelamentos - Engenharia
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <ComposedChart data={monthlyData} barGap={0} barCategoryGap={20}>
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis yAxisId="left" hide={true} />
-              <YAxis yAxisId="right" orientation="right" hide={true} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px"
-                }}
-              />
-              <Legend />
-              <Bar yAxisId="left" dataKey="total" fill="#660099" name="Total" radius={[8, 8, 0, 0]}>
-                <LabelList 
-                  dataKey="total" 
-                  position="center" 
-                  fill="white" 
-                  fontSize={12}
-                  fontWeight="bold"
-                  formatter={(value: number) => value > 0 ? value : ''}
-                />
-              </Bar>
-              <Line 
-                yAxisId="right" 
-                type="monotone" 
-                dataKey="canceled" 
-                stroke="#EF4444" 
-                strokeWidth={1.5} 
-                name="Canceladas"
-                dot={{ fill: '#EF4444', r: 3 }}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </Card>
+        {/* Rollback Activities Section */}
+        {rollbackActivities.length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Atividades Rollback</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {rollbackActivities.map((activity, index) => (
+                  <div key={index} className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1">
+                        <p className="font-semibold text-sm text-gray-900">
+                          TP {activity['TP \nSIGITM']} - {activity.EVENTO}
+                        </p>
+                        <div className="mt-2 flex gap-4 text-xs text-gray-600">
+                          <span>Data: {format(new Date(activity['Data início']), 'dd/MM/yyyy')}</span>
+                          <span>Executor: {activity['Executor da Atividade']}</span>
+                          <span>Severidade: {activity.SEVERIDADE}</span>
+                        </div>
+                      </div>
+                      <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                        Rollback
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Activities Table */}
-        <Card className="p-6 shadow-card">
-          <h2 className="text-xl font-bold text-foreground mb-6">
-            Detalhes das Atividades - Engenharia
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Data Início</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Executor</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Evento</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Severidade</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredActivities.map((activity, index) => (
-                  <tr key={index} className="border-b border-border hover:bg-muted/50 transition-colors">
-                    <td className="py-3 px-4 text-foreground text-sm">{activity['DATA/HORA INÍCIO']}</td>
-                    <td className="py-3 px-4 text-foreground">{activity['Executor da Atividade']}</td>
-                    <td className="py-3 px-4 text-foreground text-sm">{activity['EVENTO']}</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        activity.SEVERIDADE === 'ALTA' 
-                          ? "bg-red-100 text-red-700" 
-                          : activity.SEVERIDADE === 'MÉDIA'
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-green-100 text-green-700"
-                      }`}>
-                        {activity.SEVERIDADE}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
-                        activity.STATUS === "REALIZADA COM SUCESSO" 
-                          ? "bg-green-100 text-green-700" 
-                          : "bg-red-100 text-red-700"
-                      }`}>
-                        {activity.STATUS === "REALIZADA COM SUCESSO" ? (
-                          <>
-                            <CheckCircle className="w-3 h-3" />
-                            Sucesso
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="w-3 h-3" />
-                            {activity.STATUS}
-                          </>
-                        )}
-                      </span>
-                    </td>
+        <Card>
+          <CardHeader>
+            <CardTitle>Detalhes das Atividades</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 px-4">Data Início</th>
+                    <th className="text-left py-2 px-4">Executor</th>
+                    <th className="text-left py-2 px-4">Evento</th>
+                    <th className="text-left py-2 px-4">Severidade</th>
+                    <th className="text-left py-2 px-4">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredActivities.slice(0, 50).map((activity, index) => {
+                    const status = activity.STATUS?.toUpperCase() || '';
+                    const getStatusColor = () => {
+                      if (status.includes('SUCESSO')) return 'bg-green-100 text-green-700';
+                      if (status.includes('CANCELAD')) return 'bg-red-100 text-red-700';
+                      if (status.includes('PARCIAL') || status.includes('ROLLBACK') || status.includes('NÃO EXECUTAD')) 
+                        return 'bg-yellow-100 text-yellow-700';
+                      return 'bg-gray-100 text-gray-700';
+                    };
+
+                    return (
+                      <tr key={index} className="border-b hover:bg-gray-50">
+                        <td className="py-2 px-4">{format(new Date(activity['Data início']), 'dd/MM/yyyy HH:mm')}</td>
+                        <td className="py-2 px-4">{activity['Executor da Atividade']}</td>
+                        <td className="py-2 px-4 max-w-md truncate">{activity.EVENTO}</td>
+                        <td className="py-2 px-4">{activity.SEVERIDADE}</td>
+                        <td className="py-2 px-4">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor()}`}>
+                            {activity.STATUS}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
         </Card>
       </main>
     </div>
