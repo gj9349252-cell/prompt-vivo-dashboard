@@ -540,6 +540,7 @@ export const useActivitiesData = () => {
 
   return {
     data,
+    totalActivities: data.length,
     equipmentData,
     globalActivities,
     globalByMonth,

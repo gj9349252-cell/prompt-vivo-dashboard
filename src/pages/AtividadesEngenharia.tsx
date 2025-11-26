@@ -5,7 +5,7 @@ import { useActivitiesData } from "@/hooks/useActivitiesData";
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Label } from 'recharts';
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Label, LabelList } from 'recharts';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 const AtividadesEngenharia = () => {
   const navigate = useNavigate();
-  const { engineeringActivities } = useActivitiesData();
+  const { engineeringActivities, totalActivities } = useActivitiesData();
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
 
@@ -38,11 +38,10 @@ const AtividadesEngenharia = () => {
     const rdv = filteredActivities.filter(a => a.RDV === 1).length;
     const scdn = filteredActivities.filter(a => a.SCDN === 1).length;
     const outrasConfig = filteredActivities.filter(a => a['Outras Configurações'] === 1).length;
-    const successCount = filteredActivities.filter(a => a.STATUS?.toUpperCase().includes('SUCESSO')).length;
-    const successRate = total > 0 ? (successCount / total) * 100 : 0;
+    const participacao = totalActivities > 0 ? (total / totalActivities) * 100 : 0;
     
-    return { total, vsa, rws, rdv, scdn, outrasConfig, successRate };
-  }, [filteredActivities]);
+    return { total, vsa, rws, rdv, scdn, outrasConfig, participacao };
+  }, [filteredActivities, totalActivities]);
 
   // Calculate detailed monthly stats
   const monthlyStats = useMemo(() => {
@@ -242,7 +241,7 @@ const AtividadesEngenharia = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-sm text-purple-600 font-medium mb-1">Participação</p>
-                <p className="text-3xl font-bold text-purple-900">{categoryStats.successRate.toFixed(2)}%</p>
+                <p className="text-3xl font-bold text-purple-900">{categoryStats.participacao.toFixed(2)}%</p>
               </div>
             </CardContent>
           </Card>
@@ -257,30 +256,48 @@ const AtividadesEngenharia = () => {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
-                <ComposedChart data={monthlyStats}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="monthName" />
-                  <YAxis yAxisId="left">
-                    <Label value="Total Executado" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} />
-                  </YAxis>
-                  <Tooltip />
-                  <Legend />
+                <ComposedChart data={monthlyStats} barGap={0} barCategoryGap={20}>
+                  <XAxis 
+                    dataKey="monthName" 
+                    stroke="#6b7280" 
+                    style={{ fontSize: '12px' }} 
+                  />
+                  <YAxis yAxisId="left" hide={true} />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      fontSize: '12px'
+                    }}
+                  />
+                  <Legend 
+                    wrapperStyle={{ fontSize: '12px' }} 
+                  />
                   <Bar 
-                    yAxisId="left"
+                    yAxisId="left" 
                     dataKey="total" 
                     fill="#660099" 
-                    name="Total Executado"
+                    name="Total" 
                     radius={[8, 8, 0, 0]}
-                  />
+                  >
+                    <LabelList 
+                      dataKey="total" 
+                      position="center" 
+                      fill="white" 
+                      fontSize={12} 
+                      fontWeight="bold" 
+                      formatter={(value: number) => value > 0 ? value : ''} 
+                    />
+                  </Bar>
                   <Line 
-                    yAxisId="left"
+                    yAxisId="left" 
                     type="monotone" 
-                    dataKey="cancelPercentage" 
+                    dataKey="canceled" 
                     stroke="#F59E0B" 
-                    strokeWidth={2.5} 
-                    name="% Cancelado"
+                    strokeWidth={2}
+                    name="Canceladas"
                     dot={{ fill: '#F59E0B', r: 4 }}
-                    label={{ position: 'top', formatter: (value: number) => `${value}%`, fill: '#F59E0B', fontSize: 11 }}
                   />
                 </ComposedChart>
               </ResponsiveContainer>
