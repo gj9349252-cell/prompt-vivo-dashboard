@@ -86,12 +86,18 @@ const TasksFrontOffice = () => {
       }
       monthMap[key].total++;
       const status = activity.STATUS;
-      if (status === 'REALIZADA COM SUCESSO') monthMap[key].success++;else if (status === 'REALIZADA PARCIALMENTE') monthMap[key].partial++;else if (status === 'REALIZADO ROLLBACK') monthMap[key].rollback++;else if (status === 'AUTORIZADA') monthMap[key].authorized++;else if (status === 'CANCELADA') monthMap[key].canceled++;else if (status === 'NÃO EXECUTADO') monthMap[key].notExecuted++;else if (status === 'PENDENTE DOCUMENTAÇÃO') monthMap[key].pendingDoc++;else if (status === 'WO EXECUTADA SEM TP') monthMap[key].woExecuted++;
+      if (status === 'REALIZADA COM SUCESSO') monthMap[key].success++;
+      else if (status === 'REALIZADA PARCIALMENTE') monthMap[key].partial++;
+      else if (status === 'REALIZADO ROLLBACK') monthMap[key].rollback++;
+      else if (status === 'AUTORIZADA') monthMap[key].authorized++;
+      else if (status === 'CANCELADA') monthMap[key].canceled++;
+      else if (status === 'NÃO EXECUTADO') monthMap[key].notExecuted++;
+      else if (status === 'PENDENTE DOCUMENTAÇÃO') monthMap[key].pendingDoc++;
+      else if (status === 'WO EXECUTADA SEM TP') monthMap[key].woExecuted++;
     });
     return Object.entries(monthMap).sort(([a], [b]) => a.localeCompare(b)).map(([key, stats]) => {
       const [year, month] = key.split('-');
       const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-      const executed = stats.success + stats.partial + stats.rollback + stats.authorized + stats.woExecuted;
       return {
         month: monthNames[parseInt(month) - 1],
         success: stats.success,
@@ -102,9 +108,7 @@ const TasksFrontOffice = () => {
         notExecuted: stats.notExecuted,
         pendingDoc: stats.pendingDoc,
         woExecuted: stats.woExecuted,
-        total: stats.total,
-        executed,
-        canceledPercentage: executed > 0 ? stats.canceled / stats.total * 100 : 0
+        total: stats.total
       };
     });
   }, [filteredActivities]);
@@ -342,7 +346,7 @@ const TasksFrontOffice = () => {
         {/* Chart */}
         <Card className="bg-card/80 backdrop-blur">
           <CardHeader>
-            <CardTitle className="text-center text-primary">Consolidado Anual</CardTitle>
+            <CardTitle className="text-center text-primary">Total de Atividades e Cancelamentos - Front Office</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={400}>
@@ -350,26 +354,26 @@ const TasksFrontOffice = () => {
                 <XAxis dataKey="month" stroke="hsl(var(--foreground))" tick={{
                 fill: 'hsl(var(--foreground))'
               }} />
-                <YAxis hide={true} />
+                <YAxis yAxisId="left" hide={true} />
+                <YAxis yAxisId="right" orientation="right" hide={true} />
                 <Tooltip contentStyle={{
                 backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px'
               }} />
                 <Legend />
-                <Bar dataKey="success" name="Sucesso" fill="#660099" stackId="a" stroke="none" strokeWidth={0}>
-                  <LabelList dataKey="success" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
+                <Bar yAxisId="left" dataKey="total" fill="#660099" name="Total" radius={[8, 8, 0, 0]}>
+                  <LabelList dataKey="total" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
                 </Bar>
-                <Bar dataKey="partial" name="Parcial" fill="#9933CC" stackId="a" stroke="none" strokeWidth={0}>
-                  <LabelList dataKey="partial" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
-                </Bar>
-                <Bar dataKey="rollback" name="Rollback" fill="#440066" stackId="a" radius={[8, 8, 0, 0]} stroke="none" strokeWidth={0}>
-                  <LabelList dataKey="rollback" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
-                </Bar>
-                <Line type="monotone" dataKey="canceledPercentage" name="% Cancelado" stroke="#FF9800" strokeWidth={3} dot={{
-                fill: '#FF9800',
-                r: 5
-              }} />
+                <Line 
+                  yAxisId="right" 
+                  type="monotone" 
+                  dataKey="canceled" 
+                  stroke="#EF4444" 
+                  strokeWidth={2} 
+                  name="Canceladas"
+                  dot={{ fill: '#EF4444', r: 4 }}
+                />
               </ComposedChart>
             </ResponsiveContainer>
           </CardContent>
