@@ -370,9 +370,9 @@ const TasksFrontOffice = () => {
                   type="monotone" 
                   dataKey="canceled" 
                   stroke="#EF4444" 
-                  strokeWidth={2} 
+                  strokeWidth={1.5} 
                   name="Canceladas"
-                  dot={{ fill: '#EF4444', r: 4 }}
+                  dot={{ fill: '#EF4444', r: 3 }}
                 />
               </ComposedChart>
             </ResponsiveContainer>
