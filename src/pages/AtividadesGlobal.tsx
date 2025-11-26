@@ -307,7 +307,6 @@ const AtividadesGlobal = () => {
               <ComposedChart data={monthlyStatusData} barGap={0} barCategoryGap={20}>
                 <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
                 <YAxis yAxisId="left" hide={true} />
-                <YAxis yAxisId="right" orientation="right" hide={true} />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: "hsl(var(--card))",
@@ -327,13 +326,13 @@ const AtividadesGlobal = () => {
                   />
                 </Bar>
                 <Line 
-                  yAxisId="right" 
+                  yAxisId="left" 
                   type="monotone" 
                   dataKey="cancelada" 
-                  stroke="#EF4444" 
-                  strokeWidth={1.5} 
+                  stroke="#F59E0B" 
+                  strokeWidth={2} 
                   name="Canceladas"
-                  dot={{ fill: '#EF4444', r: 3 }}
+                  dot={{ fill: '#F59E0B', r: 4 }}
                 />
               </ComposedChart>
             </ResponsiveContainer>

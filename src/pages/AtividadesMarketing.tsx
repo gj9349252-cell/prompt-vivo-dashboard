@@ -303,7 +303,6 @@ const AtividadesMarketing = () => {
                 fontSize: '12px'
               }} />
                 <YAxis yAxisId="left" hide={true} />
-                <YAxis yAxisId="right" orientation="right" hide={true} />
                 <Tooltip contentStyle={{
                 backgroundColor: "white",
                 border: "1px solid #e5e7eb",
@@ -317,13 +316,13 @@ const AtividadesMarketing = () => {
                 <LabelList dataKey="total" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
               </Bar>
               <Line 
-                yAxisId="right" 
+                yAxisId="left" 
                 type="monotone" 
                 dataKey="canceled" 
-                stroke="#EF4444" 
-                strokeWidth={1.5} 
+                stroke="#F59E0B" 
+                strokeWidth={2} 
                 name="Canceladas"
-                dot={{ fill: '#EF4444', r: 3 }}
+                dot={{ fill: '#F59E0B', r: 4 }}
               />
               </ComposedChart>
             </ResponsiveContainer>
