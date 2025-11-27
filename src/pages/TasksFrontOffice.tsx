@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 import { ArrowLeft, Filter, CalendarIcon } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, ComposedChart, LabelList } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,7 +20,6 @@ const TasksFrontOffice = () => {
   const [filterType, setFilterType] = useState<"all" | "tasks" | "workorders">("all");
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
-  const navigate = useNavigate();
 
   // Filtrar atividades baseado na seleção e datas
   const filteredActivities = useMemo(() => {
@@ -394,12 +393,7 @@ const TasksFrontOffice = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredMonthlyData.map(month => (
-                    <TableRow 
-                      key={month.month} 
-                      className="cursor-pointer hover:bg-primary/5 transition-colors"
-                      onClick={() => navigate(`/detalhes-mes/${month.month}?tipo=${filterType}`)}
-                    >
+                  {filteredMonthlyData.map(month => <TableRow key={month.month} className="hover:bg-primary/5">
                       <TableCell className="font-semibold text-primary">{month.month}</TableCell>
                       <TableCell className="text-center">{month.success}</TableCell>
                       <TableCell className="text-center">{month.partial}</TableCell>
@@ -414,8 +408,7 @@ const TasksFrontOffice = () => {
                       <TableCell className="text-center font-semibold">
                         {filterType === "all" && 'totalExecuted' in month ? month.totalExecuted : month.total}
                       </TableCell>
-                    </TableRow>
-                  ))}
+                    </TableRow>)}
                 </TableBody>
               </Table>
             </div>
