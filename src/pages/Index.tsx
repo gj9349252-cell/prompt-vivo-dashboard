@@ -6,7 +6,9 @@ import {
   Megaphone, 
   Settings, 
   TrendingUp,
-  CheckSquare
+  CheckSquare,
+  Clock,
+  Monitor
 } from "lucide-react";
 
 const Index = () => {
@@ -53,6 +55,20 @@ const Index = () => {
       description: "Análise consolidada do ano",
       icon: TrendingUp,
       route: "/consolidado-anual",
+      color: "from-primary to-primary-dark"
+    },
+    {
+      title: "CONSOLIDADO HORÁRIO COMERCIAL",
+      description: "Atividades executadas em horário comercial",
+      icon: Clock,
+      route: "/consolidado-horario-comercial",
+      color: "from-primary to-primary-light"
+    },
+    {
+      title: "ATIVIDADES PLATAFORMA",
+      description: "Atividades de origem Plataforma de TV",
+      icon: Monitor,
+      route: "/atividades-plataforma",
       color: "from-primary to-primary-dark"
     }
   ];
