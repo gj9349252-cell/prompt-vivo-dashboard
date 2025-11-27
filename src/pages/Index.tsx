@@ -23,38 +23,24 @@ const Index = () => {
       color: "from-primary to-primary-light"
     },
     {
-      title: "ATIVIDADES GLOBAL",
-      description: "Análise completa de atividades globais",
-      icon: Globe,
-      route: "/atividades-global",
-      color: "from-primary to-primary-dark"
-    },
-    {
-      title: "FRONT OFFICE (TASK)",
+      title: "Atividade Front Office",
       description: "Consolidado de TASKs - Front Office",
       icon: CheckSquare,
       route: "/tasks-front-office",
-      color: "from-primary to-primary-light"
+      color: "from-primary to-primary-dark"
     },
     {
       title: "ATIVIDADES MARKETING",
       description: "Atividades da área de Marketing",
       icon: Megaphone,
       route: "/atividades-marketing",
-      color: "from-primary to-primary-dark"
+      color: "from-primary to-primary-light"
     },
     {
       title: "ATIVIDADES ENGENHARIA",
       description: "Atividades da área de Engenharia",
       icon: Settings,
       route: "/atividades-engenharia",
-      color: "from-primary to-primary-light"
-    },
-    {
-      title: "CONSOLIDADO ANUAL",
-      description: "Análise consolidada do ano",
-      icon: TrendingUp,
-      route: "/consolidado-anual",
       color: "from-primary to-primary-dark"
     },
     {
@@ -70,6 +56,13 @@ const Index = () => {
       icon: Monitor,
       route: "/atividades-plataforma",
       color: "from-primary to-primary-dark"
+    },
+    {
+      title: "CONSOLIDADO ANUAL",
+      description: "Análise consolidada do ano",
+      icon: TrendingUp,
+      route: "/consolidado-anual",
+      color: "from-primary to-primary-light"
     }
   ];
 
