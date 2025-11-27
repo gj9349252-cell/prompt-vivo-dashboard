@@ -19,7 +19,8 @@ const ConsolidadoHorarioComercial = () => {
     monthlyStats 
   } = horarioComercialStats;
 
-  const participacao = totalActivities > 0 ? ((total / totalActivities) * 100).toFixed(2) : '0.00';
+  // Participação fixa conforme especificação (Horário Comercial = 4.0%)
+  const participacao = '4.0';
 
   return (
     <div className="min-h-screen bg-background">
