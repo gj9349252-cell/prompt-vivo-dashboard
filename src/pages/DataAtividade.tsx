@@ -1,47 +1,41 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Filter } from "lucide-react";
+import { ArrowLeft, Filter, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 import { useState, useMemo } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const DataAtividade = () => {
   const navigate = useNavigate();
-  const { data, equipmentData, totalActivities } = useActivitiesData();
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const { data, equipmentData } = useActivitiesData();
+  const [selectedDate, setSelectedDate] = useState("");
 
-  // Filter equipment data by date range
+  // Filter equipment data by selected date
   const filteredEquipmentData = useMemo(() => {
-    if (!startDate && !endDate) return equipmentData;
+    if (!selectedDate) return equipmentData;
 
-    // Filter activities by date first
+    // Convert selected date (YYYY-MM-DD) to DD/MM/YYYY for comparison
+    const [year, month, day] = selectedDate.split('-');
+    const formattedSelectedDate = `${day}/${month}/${year}`;
+
+    // Filter activities by date
     const filteredActivities = data.filter(activity => {
       const activityDate = activity['DATA/HORA INÍCIO'];
       if (!activityDate) return false;
       
-      const [day, month, year] = activityDate.split('/');
-      if (!day || !month || !year) return false;
-      
-      let fullYear = year;
-      if (year.length === 2) {
-        const yearNum = parseInt(year, 10);
-        fullYear = yearNum < 50 ? `20${year}` : `19${year}`;
-      }
-      
-      const paddedDay = day.padStart(2, '0');
-      const paddedMonth = month.padStart(2, '0');
-      const activityFullDate = `${fullYear}-${paddedMonth}-${paddedDay}`;
-
-      if (startDate && endDate) {
-        return activityFullDate >= startDate && activityFullDate <= endDate;
-      } else if (startDate) {
-        return activityFullDate >= startDate;
-      } else if (endDate) {
-        return activityFullDate <= endDate;
-      }
-      return true;
+      // Extract just the date part (DD/MM/YYYY)
+      const activityDateOnly = activityDate.split(' ')[0];
+      return activityDateOnly === formattedSelectedDate;
     });
 
     // Recalculate equipment totals from filtered activities
@@ -90,18 +84,12 @@ const DataAtividade = () => {
       }))
       .filter(item => item.total > 0)
       .sort((a, b) => b.total - a.total);
-  }, [data, equipmentData, startDate, endDate]);
+  }, [data, equipmentData, selectedDate]);
 
-  const handleEquipmentClick = (equipmentName: string) => {
-    if (startDate || endDate) {
-      const params = new URLSearchParams();
-      if (startDate) params.set('startDate', startDate);
-      if (endDate) params.set('endDate', endDate);
-      navigate(`/equipamento/${encodeURIComponent(equipmentName)}?${params.toString()}`);
-    } else {
-      navigate(`/equipamento/${encodeURIComponent(equipmentName)}`);
-    }
-  };
+  // Calculate KPIs
+  const totalOccurrences = filteredEquipmentData.reduce((sum, item) => sum + item.total, 0);
+  const monitoredEquipment = filteredEquipmentData.length;
+  const criticalEquipment = filteredEquipmentData.length > 0 ? filteredEquipmentData[0].name : "N/A";
 
   return (
     <div className="min-h-screen bg-background">
@@ -130,77 +118,141 @@ const DataAtividade = () => {
             <Filter className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-semibold text-foreground">Filtrar por Período</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Data Início</label>
+          <div className="max-w-md">
+            <label className="text-sm text-muted-foreground mb-2 block">Selecionar Data</label>
+            <div className="relative">
               <Input 
                 type="date" 
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-full"
+                placeholder="dd/mm/aaaa"
               />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Data Fim</label>
-              <Input 
-                type="date" 
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full"
-              />
+              <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             </div>
           </div>
-          {(startDate || endDate) && (
+          {selectedDate && (
             <div className="mt-4 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Período selecionado aplicado aos equipamentos
+                Período selecionado aplicado aos dados
               </p>
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => { setStartDate(""); setEndDate(""); }}
+                onClick={() => setSelectedDate("")}
               >
-                Limpar Filtros
+                Limpar Filtro
               </Button>
             </div>
           )}
         </Card>
 
-        {/* Equipment Cards */}
-        <div>
-          <h2 className="text-2xl font-semibold text-foreground mb-4">Equipamentos</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {filteredEquipmentData.map((equipment) => (
-              <Card
-                key={equipment.name}
-                className="shadow-card hover:shadow-elevated transition-all cursor-pointer hover:scale-105 hover:border-primary border-2"
-                onClick={() => handleEquipmentClick(equipment.name)}
-              >
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold text-foreground">
-                    {equipment.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-4xl font-bold text-primary">{equipment.total}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {equipment.percentage.toFixed(1)}% do total
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="shadow-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-medium text-muted-foreground">
+                Total de Ocorrências
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold text-primary">{totalOccurrences}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-medium text-muted-foreground">
+                Equipamentos Monitorados
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold text-primary">{monitoredEquipment}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-medium text-muted-foreground">
+                Equipamento Crítico
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-primary">{criticalEquipment}</p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Info Text */}
+        {/* Horizontal Bar Chart */}
+        <Card className="shadow-card mb-8">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-foreground">
+              Total de Falhas por Equipamento
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={600}>
+              <BarChart
+                data={filteredEquipmentData}
+                layout="vertical"
+                margin={{ top: 5, right: 30, left: 120, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis type="number" className="text-xs" />
+                <YAxis 
+                  type="category" 
+                  dataKey="name" 
+                  className="text-xs"
+                  width={110}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                  formatter={(value: number) => [value, 'Total']}
+                />
+                <Bar dataKey="total" radius={[0, 4, 4, 0]}>
+                  {filteredEquipmentData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill="#660099" />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Detailed Equipment Table */}
         <Card className="shadow-card">
-          <CardContent className="pt-6">
-            <p className="text-muted-foreground leading-relaxed">
-              Clique em um equipamento para ver detalhes das atividades relacionadas. 
-              Use os filtros de data acima para visualizar atividades de um período específico.
-            </p>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-foreground">
+              Detalhamento por Equipamento
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-semibold">Equipamento</TableHead>
+                  <TableHead className="text-center font-semibold">Total</TableHead>
+                  <TableHead className="text-center font-semibold">Percentual</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEquipmentData.map((equipment) => (
+                  <TableRow 
+                    key={equipment.name}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => navigate(`/equipamento/${encodeURIComponent(equipment.name)}`)}
+                  >
+                    <TableCell className="font-medium">{equipment.name}</TableCell>
+                    <TableCell className="text-center">{equipment.total}</TableCell>
+                    <TableCell className="text-center">{equipment.percentage.toFixed(1)}%</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       </main>
