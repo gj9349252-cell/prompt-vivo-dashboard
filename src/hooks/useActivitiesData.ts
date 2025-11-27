@@ -538,6 +538,162 @@ export const useActivitiesData = () => {
     };
   }, [data]);
 
+  // Horário Comercial activities and stats
+  const horarioComercialActivities = useMemo(
+    () => data.filter(activity => activity['Horário Comercial'] === 1),
+    [data]
+  );
+
+  const horarioComercialStats = useMemo(() => {
+    const total = horarioComercialActivities.length;
+    const successCount = horarioComercialActivities.filter(isRealizada).length;
+    const partialCount = horarioComercialActivities.filter(a => a['Status da atividade']?.includes('PARCIAL')).length;
+    const rollbackCount = horarioComercialActivities.filter(a => 
+      a['Status da atividade']?.includes('ROLLBACK') || a['Status da atividade']?.includes('AUTORIZAÇÃO')
+    ).length;
+    const canceledCount = horarioComercialActivities.filter(a => a['Status da atividade']?.includes('CANCELAD')).length;
+    const notExecutedCount = horarioComercialActivities.filter(a => 
+      a['Status da atividade']?.includes('NÃO EXECUTAD') || isWoSemTP(a)
+    ).length;
+
+    const monthlyData: Record<string, any> = {};
+    horarioComercialActivities.forEach(activity => {
+      const dateStr = activity['DATA/HORA INÍCIO'];
+      if (!dateStr) return;
+      
+      const [day, month, year] = dateStr.split('/');
+      if (!month || !year) return;
+      
+      const monthKey = `${month.padStart(2, '0')}/${year}`;
+      
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = {
+          total: 0,
+          success: 0,
+          partial: 0,
+          rollback: 0,
+          canceled: 0,
+          notExecuted: 0,
+        };
+      }
+      
+      monthlyData[monthKey].total++;
+      if (isRealizada(activity)) monthlyData[monthKey].success++;
+      if (activity['Status da atividade']?.includes('PARCIAL')) monthlyData[monthKey].partial++;
+      if (activity['Status da atividade']?.includes('ROLLBACK') || activity['Status da atividade']?.includes('AUTORIZAÇÃO')) {
+        monthlyData[monthKey].rollback++;
+      }
+      if (activity['Status da atividade']?.includes('CANCELAD')) monthlyData[monthKey].canceled++;
+      if (activity['Status da atividade']?.includes('NÃO EXECUTAD') || isWoSemTP(activity)) {
+        monthlyData[monthKey].notExecuted++;
+      }
+    });
+
+    const monthlyStats = Object.entries(monthlyData)
+      .map(([key, stats]: [string, any]) => {
+        const [month, year] = key.split('/');
+        return {
+          monthKey: key,
+          month: parseInt(month),
+          year: parseInt(year),
+          monthName: new Date(parseInt(year), parseInt(month) - 1).toLocaleString('pt-BR', { month: 'short' }).replace('.', ''),
+          ...stats,
+        };
+      })
+      .sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.month - b.month;
+      });
+
+    return {
+      total,
+      successCount,
+      partialCount,
+      rollbackCount,
+      canceledCount,
+      notExecutedCount,
+      monthlyStats,
+    };
+  }, [horarioComercialActivities]);
+
+  // Plataforma activities and stats
+  const plataformaActivities = useMemo(
+    () => data.filter(activity => activity['Execução Plataforma BR'] === 1),
+    [data]
+  );
+
+  const plataformaStats = useMemo(() => {
+    const total = plataformaActivities.length;
+    const successCount = plataformaActivities.filter(isRealizada).length;
+    const partialCount = plataformaActivities.filter(a => a['Status da atividade']?.includes('PARCIAL')).length;
+    const rollbackCount = plataformaActivities.filter(a => 
+      a['Status da atividade']?.includes('ROLLBACK') || a['Status da atividade']?.includes('AUTORIZAÇÃO')
+    ).length;
+    const canceledCount = plataformaActivities.filter(a => a['Status da atividade']?.includes('CANCELAD')).length;
+    const notExecutedCount = plataformaActivities.filter(a => 
+      a['Status da atividade']?.includes('NÃO EXECUTAD') || isWoSemTP(a)
+    ).length;
+
+    const monthlyData: Record<string, any> = {};
+    plataformaActivities.forEach(activity => {
+      const dateStr = activity['DATA/HORA INÍCIO'];
+      if (!dateStr) return;
+      
+      const [day, month, year] = dateStr.split('/');
+      if (!month || !year) return;
+      
+      const monthKey = `${month.padStart(2, '0')}/${year}`;
+      
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = {
+          total: 0,
+          success: 0,
+          partial: 0,
+          rollback: 0,
+          canceled: 0,
+          notExecuted: 0,
+        };
+      }
+      
+      monthlyData[monthKey].total++;
+      if (isRealizada(activity)) monthlyData[monthKey].success++;
+      if (activity['Status da atividade']?.includes('PARCIAL')) monthlyData[monthKey].partial++;
+      if (activity['Status da atividade']?.includes('ROLLBACK') || activity['Status da atividade']?.includes('AUTORIZAÇÃO')) {
+        monthlyData[monthKey].rollback++;
+      }
+      if (activity['Status da atividade']?.includes('CANCELAD')) monthlyData[monthKey].canceled++;
+      if (activity['Status da atividade']?.includes('NÃO EXECUTAD') || isWoSemTP(activity)) {
+        monthlyData[monthKey].notExecuted++;
+      }
+    });
+
+    const monthlyStats = Object.entries(monthlyData)
+      .map(([key, stats]: [string, any]) => {
+        const [month, year] = key.split('/');
+        return {
+          monthKey: key,
+          month: parseInt(month),
+          year: parseInt(year),
+          monthName: new Date(parseInt(year), parseInt(month) - 1).toLocaleString('pt-BR', { month: 'short' }).replace('.', ''),
+          ...stats,
+        };
+      })
+      .sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.month - b.month;
+      });
+
+    return {
+      total,
+      successCount,
+      partialCount,
+      rollbackCount,
+      canceledCount,
+      notExecutedCount,
+      monthlyStats,
+    };
+  }, [plataformaActivities]);
+
   return {
     data,
     totalActivities: data.length,
@@ -552,6 +708,10 @@ export const useActivitiesData = () => {
     marketingActivities,
     platformActivities,
     marketingStats,
-    demandaGlobal
+    demandaGlobal,
+    horarioComercialActivities,
+    horarioComercialStats,
+    plataformaActivities,
+    plataformaStats,
   };
 };
