@@ -1,134 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Filter, TrendingUp, TrendingDown, Activity, AlertCircle, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Activity, AlertCircle, XCircle, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LabelList } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
-import { useState, useMemo } from "react";
-import { Input } from "@/components/ui/input";
 
-const DataAtividade = () => {
+const ConsolidadoHorarioComercial = () => {
   const navigate = useNavigate();
-  const { data, totalActivities } = useActivitiesData();
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const { horarioComercialStats, totalActivities } = useActivitiesData();
 
-  // Filter all activities by date range
-  const filteredActivities = useMemo(() => {
-    if (!startDate && !endDate) return data;
+  const { 
+    total, 
+    successCount, 
+    partialCount, 
+    rollbackCount, 
+    canceledCount, 
+    notExecutedCount,
+    monthlyStats 
+  } = horarioComercialStats;
 
-    return data.filter(activity => {
-      const activityDate = activity['DATA/HORA INÍCIO'];
-      if (!activityDate) return false;
-      
-      const [day, month, year] = activityDate.split('/');
-      if (!day || !month || !year) return false;
-      
-      let fullYear = year;
-      if (year.length === 2) {
-        const yearNum = parseInt(year, 10);
-        fullYear = yearNum < 50 ? `20${year}` : `19${year}`;
-      }
-      
-      const paddedDay = day.padStart(2, '0');
-      const paddedMonth = month.padStart(2, '0');
-      const activityFullDate = `${fullYear}-${paddedMonth}-${paddedDay}`;
-
-      if (startDate && endDate) {
-        return activityFullDate >= startDate && activityFullDate <= endDate;
-      } else if (startDate) {
-        return activityFullDate >= startDate;
-      } else if (endDate) {
-        return activityFullDate <= endDate;
-      }
-      return true;
-    });
-  }, [data, startDate, endDate]);
-
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const total = filteredActivities.length;
-    
-    const isRealizada = (activity: any) => {
-      const status = activity['Status da atividade'];
-      return status?.includes('EXECUTAD') && 
-             !status?.includes('NÃO EXECUTAD') && 
-             !status?.includes('CANCELAD');
-    };
-    
-    const successCount = filteredActivities.filter(isRealizada).length;
-    const partialCount = filteredActivities.filter(a => a['Status da atividade']?.includes('PARCIAL')).length;
-    const rollbackCount = filteredActivities.filter(a => 
-      a['Status da atividade']?.includes('ROLLBACK') || a['Status da atividade']?.includes('AUTORIZAÇÃO')
-    ).length;
-    const canceledCount = filteredActivities.filter(a => a['Status da atividade']?.includes('CANCELAD')).length;
-    const notExecutedCount = filteredActivities.filter(a => 
-      a['Status da atividade']?.includes('NÃO EXECUTAD') || a['Status da atividade']?.includes('WO EXECUTADA SEM TP')
-    ).length;
-
-    // Monthly aggregation
-    const monthlyData: Record<string, any> = {};
-    filteredActivities.forEach(activity => {
-      const dateStr = activity['DATA/HORA INÍCIO'];
-      if (!dateStr) return;
-      
-      const [day, month, year] = dateStr.split('/');
-      if (!month || !year) return;
-      
-      const monthKey = `${month.padStart(2, '0')}/${year}`;
-      
-      if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = {
-          total: 0,
-          success: 0,
-          partial: 0,
-          rollback: 0,
-          canceled: 0,
-          notExecuted: 0,
-        };
-      }
-      
-      monthlyData[monthKey].total++;
-      if (isRealizada(activity)) monthlyData[monthKey].success++;
-      if (activity['Status da atividade']?.includes('PARCIAL')) monthlyData[monthKey].partial++;
-      if (activity['Status da atividade']?.includes('ROLLBACK') || activity['Status da atividade']?.includes('AUTORIZAÇÃO')) {
-        monthlyData[monthKey].rollback++;
-      }
-      if (activity['Status da atividade']?.includes('CANCELAD')) monthlyData[monthKey].canceled++;
-      if (activity['Status da atividade']?.includes('NÃO EXECUTAD') || activity['Status da atividade']?.includes('WO EXECUTADA SEM TP')) {
-        monthlyData[monthKey].notExecuted++;
-      }
-    });
-
-    const monthlyStats = Object.entries(monthlyData)
-      .map(([key, stats]: [string, any]) => {
-        const [month, year] = key.split('/');
-        return {
-          monthKey: key,
-          month: parseInt(month),
-          year: parseInt(year),
-          monthName: new Date(parseInt(year), parseInt(month) - 1).toLocaleString('pt-BR', { month: 'short' }).replace('.', ''),
-          ...stats,
-        };
-      })
-      .sort((a, b) => {
-        if (a.year !== b.year) return a.year - b.year;
-        return a.month - b.month;
-      });
-
-    const participacao = totalActivities > 0 ? ((total / totalActivities) * 100).toFixed(2) : '0.00';
-
-    return {
-      total,
-      successCount,
-      partialCount,
-      rollbackCount,
-      canceledCount,
-      notExecutedCount,
-      monthlyStats,
-      participacao,
-    };
-  }, [filteredActivities, totalActivities]);
+  const participacao = totalActivities > 0 ? ((total / totalActivities) * 100).toFixed(2) : '0.00';
 
   return (
     <div className="min-h-screen bg-background">
@@ -144,55 +35,13 @@ const DataAtividade = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">DATA / TIPO ATIVIDADE</h1>
-            <p className="text-white/90 text-sm mt-1">Análise por tipo de equipamento e data</p>
+            <h1 className="text-3xl font-bold">Consolidado Horário Comercial</h1>
+            <p className="text-white/90 text-sm mt-1">Atividades executadas em horário comercial</p>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        {/* Date Filter */}
-        <Card className="p-6 shadow-card mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Filter className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground">Filtrar por Período</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Data Início</label>
-              <Input 
-                type="date" 
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Data Fim</label>
-              <Input 
-                type="date" 
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full"
-              />
-            </div>
-          </div>
-          {(startDate || endDate) && (
-            <div className="mt-4 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                <span className="font-semibold text-primary">{stats.total}</span> atividades encontradas no período
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => { setStartDate(""); setEndDate(""); }}
-              >
-                Limpar Filtros
-              </Button>
-            </div>
-          )}
-        </Card>
-
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
           <Card className="shadow-card hover:shadow-elevated transition-shadow">
@@ -203,7 +52,7 @@ const DataAtividade = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-primary">{stats.total}</p>
+              <p className="text-3xl font-bold text-primary">{total}</p>
             </CardContent>
           </Card>
 
@@ -215,7 +64,7 @@ const DataAtividade = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-green-600">{stats.successCount}</p>
+              <p className="text-3xl font-bold text-green-600">{successCount}</p>
             </CardContent>
           </Card>
 
@@ -227,7 +76,7 @@ const DataAtividade = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-yellow-600">{stats.partialCount}</p>
+              <p className="text-3xl font-bold text-yellow-600">{partialCount}</p>
             </CardContent>
           </Card>
 
@@ -239,7 +88,7 @@ const DataAtividade = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-blue-600">{stats.rollbackCount}</p>
+              <p className="text-3xl font-bold text-blue-600">{rollbackCount}</p>
             </CardContent>
           </Card>
 
@@ -251,7 +100,7 @@ const DataAtividade = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-orange-600">{stats.canceledCount}</p>
+              <p className="text-3xl font-bold text-orange-600">{canceledCount}</p>
             </CardContent>
           </Card>
 
@@ -263,7 +112,7 @@ const DataAtividade = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-red-600">{stats.notExecutedCount}</p>
+              <p className="text-3xl font-bold text-red-600">{notExecutedCount}</p>
             </CardContent>
           </Card>
 
@@ -275,7 +124,7 @@ const DataAtividade = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-primary">{stats.participacao}%</p>
+              <p className="text-3xl font-bold text-primary">{participacao}%</p>
             </CardContent>
           </Card>
         </div>
@@ -289,7 +138,7 @@ const DataAtividade = () => {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
-                <ComposedChart data={stats.monthlyStats} barGap={0} barCategoryGap={20}>
+                <ComposedChart data={monthlyStats} barGap={0} barCategoryGap={20}>
                   <XAxis 
                     dataKey="monthName" 
                     stroke="hsl(var(--muted-foreground))" 
@@ -354,7 +203,7 @@ const DataAtividade = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {stats.monthlyStats.map((stat, index) => (
+                    {monthlyStats.map((stat, index) => (
                       <tr key={index} className="border-b border-border hover:bg-muted/50 transition-colors">
                         <td className="py-2 px-2 font-medium">{stat.monthName}</td>
                         <td className="py-2 px-2 text-right text-green-600 font-semibold">{stat.success}</td>
@@ -376,10 +225,10 @@ const DataAtividade = () => {
         <Card className="shadow-card">
           <CardContent className="pt-6">
             <p className="text-muted-foreground leading-relaxed">
-              Esta visão apresenta todas as atividades registradas no sistema, permitindo análise abrangente 
-              por período. Os filtros de data início e fim possibilitam a seleção de intervalos customizados 
-              para investigação detalhada de tendências, padrões sazonais e distribuição temporal das atividades 
-              programadas e executadas pela equipe técnica.
+              As atividades executadas em horário comercial têm por características ajustes no MIB e SDP, 
+              exigindo maior coordenação com as equipes de operação e suporte. Essas atividades geralmente 
+              envolvem mudanças de configuração que podem impactar o serviço durante o período de maior 
+              utilização pelos usuários finais, necessitando planejamento criterioso e comunicação adequada.
             </p>
           </CardContent>
         </Card>
@@ -388,4 +237,4 @@ const DataAtividade = () => {
   );
 };
 
-export default DataAtividade;
+export default ConsolidadoHorarioComercial;

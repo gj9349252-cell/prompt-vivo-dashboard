@@ -11,6 +11,8 @@ import ConsolidadoAnual from "./pages/ConsolidadoAnual";
 import TasksFrontOffice from "./pages/TasksFrontOffice";
 import AtividadesEngenharia from "./pages/AtividadesEngenharia";
 import AtividadesMarketing from "./pages/AtividadesMarketing";
+import ConsolidadoHorarioComercial from "./pages/ConsolidadoHorarioComercial";
+import AtividadesPlataforma from "./pages/AtividadesPlataforma";
 
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +33,8 @@ const App = () => (
           <Route path="/tasks-front-office" element={<TasksFrontOffice />} />
           <Route path="/atividades-engenharia" element={<AtividadesEngenharia />} />
           <Route path="/atividades-marketing" element={<AtividadesMarketing />} />
+          <Route path="/consolidado-horario-comercial" element={<ConsolidadoHorarioComercial />} />
+          <Route path="/atividades-plataforma" element={<AtividadesPlataforma />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
