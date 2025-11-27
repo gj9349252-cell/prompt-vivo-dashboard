@@ -1,58 +1,80 @@
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Globe, Megaphone, Settings, TrendingUp, CheckSquare, Clock, Monitor } from "lucide-react";
+import { 
+  Calendar, 
+  Globe, 
+  Megaphone, 
+  Settings, 
+  TrendingUp,
+  CheckSquare,
+  Clock,
+  Monitor
+} from "lucide-react";
+
 const Index = () => {
   const navigate = useNavigate();
-  const menuCards = [{
-    title: "DATA / TIPO ATIVIDADE",
-    description: "Visualize atividades por data e tipo de equipamento",
-    icon: Calendar,
-    route: "/data-atividade",
-    color: "from-primary to-primary-light"
-  }, {
-    title: "ATIVIDADES GLOBAL",
-    description: "Análise completa de atividades globais",
-    icon: Globe,
-    route: "/atividades-global",
-    color: "from-primary to-primary-dark"
-  }, {
-    title: "FRONT OFFICE (TASK)",
-    description: "Consolidado de TASKs - Front Office",
-    icon: CheckSquare,
-    route: "/tasks-front-office",
-    color: "from-primary to-primary-light"
-  }, {
-    title: "ATIVIDADES MARKETING",
-    description: "Atividades da área de Marketing",
-    icon: Megaphone,
-    route: "/atividades-marketing",
-    color: "from-primary to-primary-dark"
-  }, {
-    title: "ATIVIDADES ENGENHARIA",
-    description: "Atividades da área de Engenharia",
-    icon: Settings,
-    route: "/atividades-engenharia",
-    color: "from-primary to-primary-light"
-  }, {
-    title: "CONSOLIDADO ANUAL",
-    description: "Análise consolidada do ano",
-    icon: TrendingUp,
-    route: "/consolidado-anual",
-    color: "from-primary to-primary-dark"
-  }, {
-    title: "CONSOLIDADO HORÁRIO COMERCIAL",
-    description: "Atividades executadas em horário comercial",
-    icon: Clock,
-    route: "/consolidado-horario-comercial",
-    color: "from-primary to-primary-light"
-  }, {
-    title: "ATIVIDADES PLATAFORMA",
-    description: "Atividades de origem Plataforma de TV",
-    icon: Monitor,
-    route: "/atividades-plataforma",
-    color: "from-primary to-primary-dark"
-  }];
-  return <div className="min-h-screen bg-background">
+
+  const menuCards = [
+    {
+      title: "DATA / TIPO ATIVIDADE",
+      description: "Visualize atividades por data e tipo de equipamento",
+      icon: Calendar,
+      route: "/data-atividade",
+      color: "from-primary to-primary-light"
+    },
+    {
+      title: "ATIVIDADES GLOBAL",
+      description: "Análise completa de atividades globais",
+      icon: Globe,
+      route: "/atividades-global",
+      color: "from-primary to-primary-dark"
+    },
+    {
+      title: "FRONT OFFICE (TASK)",
+      description: "Consolidado de TASKs - Front Office",
+      icon: CheckSquare,
+      route: "/tasks-front-office",
+      color: "from-primary to-primary-light"
+    },
+    {
+      title: "ATIVIDADES MARKETING",
+      description: "Atividades da área de Marketing",
+      icon: Megaphone,
+      route: "/atividades-marketing",
+      color: "from-primary to-primary-dark"
+    },
+    {
+      title: "ATIVIDADES ENGENHARIA",
+      description: "Atividades da área de Engenharia",
+      icon: Settings,
+      route: "/atividades-engenharia",
+      color: "from-primary to-primary-light"
+    },
+    {
+      title: "CONSOLIDADO ANUAL",
+      description: "Análise consolidada do ano",
+      icon: TrendingUp,
+      route: "/consolidado-anual",
+      color: "from-primary to-primary-dark"
+    },
+    {
+      title: "CONSOLIDADO HORÁRIO COMERCIAL",
+      description: "Atividades executadas em horário comercial",
+      icon: Clock,
+      route: "/consolidado-horario-comercial",
+      color: "from-primary to-primary-light"
+    },
+    {
+      title: "ATIVIDADES PLATAFORMA",
+      description: "Atividades de origem Plataforma de TV",
+      icon: Monitor,
+      route: "/atividades-plataforma",
+      color: "from-primary to-primary-dark"
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="gradient-header text-white py-8 px-6 shadow-elevated">
         <div className="container mx-auto">
@@ -78,13 +100,29 @@ const Index = () => {
 
         {/* Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {menuCards.map(card => {
-          const Icon = card.icon;
-          return <Card key={card.route} className="group cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-elevated overflow-hidden border-2 hover:border-primary" onClick={() => navigate(card.route)}>
-                
+          {menuCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <Card
+                key={card.route}
+                className="group cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-elevated overflow-hidden border-2 hover:border-primary"
+                onClick={() => navigate(card.route)}
+              >
+                <div className="p-6">
+                  <div className={`bg-gradient-to-br ${card.color} w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                    {card.title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {card.description}
+                  </p>
+                </div>
                 <div className={`h-1 bg-gradient-to-r ${card.color} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`} />
-              </Card>;
-        })}
+              </Card>
+            );
+          })}
         </div>
 
         {/* Info Footer */}
@@ -99,6 +137,8 @@ const Index = () => {
           </p>
         </div>
       </main>
-    </div>;
+    </div>
+  );
 };
+
 export default Index;
