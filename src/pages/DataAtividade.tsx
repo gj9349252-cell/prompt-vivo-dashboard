@@ -34,15 +34,27 @@ const DataAtividade = () => {
       const activityDateStr = activity['DATA/HORA INÍCIO'];
       if (!activityDateStr) return false;
       
-      const [day, month, year] = activityDateStr.split('/');
-      const activityDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      // Extract only the date part (DD/MM/YYYY), ignoring time if present
+      const dateOnlyStr = activityDateStr.split(' ')[0];
+      const [day, month, year] = dateOnlyStr.split('/');
       
-      if (startDate && endDate) {
-        return activityDate >= startDate && activityDate <= endDate;
-      } else if (startDate) {
-        return activityDate >= startDate;
-      } else if (endDate) {
-        return activityDate <= endDate;
+      // Create date at midnight for accurate day comparison
+      const activityDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      activityDate.setHours(0, 0, 0, 0);
+      
+      // Normalize filter dates to midnight
+      const normalizedStartDate = startDate ? new Date(startDate) : null;
+      if (normalizedStartDate) normalizedStartDate.setHours(0, 0, 0, 0);
+      
+      const normalizedEndDate = endDate ? new Date(endDate) : null;
+      if (normalizedEndDate) normalizedEndDate.setHours(0, 0, 0, 0);
+      
+      if (normalizedStartDate && normalizedEndDate) {
+        return activityDate >= normalizedStartDate && activityDate <= normalizedEndDate;
+      } else if (normalizedStartDate) {
+        return activityDate >= normalizedStartDate;
+      } else if (normalizedEndDate) {
+        return activityDate <= normalizedEndDate;
       }
       
       return true;
