@@ -29,7 +29,7 @@ const DataAtividade = () => {
   const filteredEquipmentData = useMemo(() => {
     if (!startDate && !endDate) return equipmentData;
 
-    // Filter activities by date range
+    // Filter activities by date - EXACT date when startDate === endDate
     const filteredActivities = data.filter(activity => {
       const activityDateStr = activity['DATA/HORA INÍCIO'];
       if (!activityDateStr) return false;
@@ -49,6 +49,13 @@ const DataAtividade = () => {
       const normalizedEndDate = endDate ? new Date(endDate) : null;
       if (normalizedEndDate) normalizedEndDate.setHours(0, 0, 0, 0);
       
+      // If both dates are set and equal, filter for EXACT date match only
+      if (normalizedStartDate && normalizedEndDate && 
+          normalizedStartDate.getTime() === normalizedEndDate.getTime()) {
+        return activityDate.getTime() === normalizedStartDate.getTime();
+      }
+      
+      // Otherwise, use date range filtering
       if (normalizedStartDate && normalizedEndDate) {
         return activityDate >= normalizedStartDate && activityDate <= normalizedEndDate;
       } else if (normalizedStartDate) {

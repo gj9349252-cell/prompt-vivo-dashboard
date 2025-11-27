@@ -14,7 +14,8 @@ import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
 const TasksFrontOffice = () => {
   const {
-    tasksStats
+    tasksStats,
+    data
   } = useActivitiesData();
   const [filterType, setFilterType] = useState<"all" | "tasks" | "workorders">("all");
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -22,25 +23,54 @@ const TasksFrontOffice = () => {
 
   // Filtrar atividades baseado na seleção e datas
   const filteredActivities = useMemo(() => {
+    // Para "Todos" (all), usar TODAS as atividades globais
     let activities = filterType === "tasks" ? tasksStats.tasks : 
                      filterType === "workorders" ? tasksStats.workOrders : 
-                     tasksStats.frontOfficeActivities;
+                     data; // Dados globais para aba "Todos"
 
     if (!startDate && !endDate) return activities;
 
     return activities.filter(activity => {
-      const activityDate = activity['DATA/HORA INÍCIO'];
-      const [day, month, year] = activityDate.split('/');
+      const activityDateStr = activity['DATA/HORA INÍCIO'];
+      if (!activityDateStr) return false;
+      
+      const dateOnlyStr = activityDateStr.split(' ')[0];
+      const [day, month, year] = dateOnlyStr.split('/');
       const activityFullDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      activityFullDate.setHours(0, 0, 0, 0);
+      
+      const normalizedStartDate = startDate ? new Date(startDate) : null;
+      if (normalizedStartDate) normalizedStartDate.setHours(0, 0, 0, 0);
+      
+      const normalizedEndDate = endDate ? new Date(endDate) : null;
+      if (normalizedEndDate) normalizedEndDate.setHours(0, 0, 0, 0);
 
-      if (startDate && activityFullDate < startDate) return false;
-      if (endDate && activityFullDate > endDate) return false;
+      // Exact date match if both dates are equal
+      if (normalizedStartDate && normalizedEndDate && 
+          normalizedStartDate.getTime() === normalizedEndDate.getTime()) {
+        return activityFullDate.getTime() === normalizedStartDate.getTime();
+      }
+
+      if (normalizedStartDate && activityFullDate < normalizedStartDate) return false;
+      if (normalizedEndDate && activityFullDate > normalizedEndDate) return false;
       return true;
     });
-  }, [filterType, tasksStats, startDate, endDate]);
+  }, [filterType, tasksStats, data, startDate, endDate]);
 
   // Calcular KPIs baseados no filtro ativo
   const filteredKPIs = useMemo(() => {
+    // Para aba "Todos", usar valores globais fixos
+    if (filterType === "all") {
+      return {
+        total: 878,
+        success: 755,
+        partial: 12,
+        canceled: 78,
+        woExecuted: filteredActivities.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length
+      };
+    }
+    
+    // Para TASKs e Work Orders, calcular dinamicamente
     return {
       total: filteredActivities.length,
       success: filteredActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length,
@@ -48,10 +78,29 @@ const TasksFrontOffice = () => {
       canceled: filteredActivities.filter(a => a.STATUS === 'CANCELADA').length,
       woExecuted: filteredActivities.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length
     };
-  }, [filteredActivities]);
+  }, [filteredActivities, filterType]);
 
   // Calcular dados mensais baseados no filtro ativo
   const filteredMonthlyData = useMemo(() => {
+    // Para aba "Todos", usar dados fixos especificados pelo usuário
+    if (filterType === "all") {
+      return [
+        { month: 'Janeiro', success: 72, partial: 1, rollback: 0, canceled: 8, canceledPercent: 10, notExecuted: 0, totalExecuted: 73 },
+        { month: 'Fevereiro', success: 65, partial: 2, rollback: 0, canceled: 12, canceledPercent: 14, notExecuted: 5, totalExecuted: 67 },
+        { month: 'Março', success: 96, partial: 6, rollback: 0, canceled: 10, canceledPercent: 9, notExecuted: 4, totalExecuted: 102 },
+        { month: 'Abril', success: 41, partial: 1, rollback: 0, canceled: 13, canceledPercent: 23, notExecuted: 2, totalExecuted: 42 },
+        { month: 'Maio', success: 78, partial: 0, rollback: 0, canceled: 4, canceledPercent: 5, notExecuted: 4, totalExecuted: 78 },
+        { month: 'Junho', success: 71, partial: 1, rollback: 0, canceled: 2, canceledPercent: 3, notExecuted: 2, totalExecuted: 72 },
+        { month: 'Julho', success: 63, partial: 1, rollback: 0, canceled: 4, canceledPercent: 5, notExecuted: 8, totalExecuted: 64 },
+        { month: 'Agosto', success: 26, partial: 0, rollback: 0, canceled: 4, canceledPercent: 13, notExecuted: 2, totalExecuted: 26 },
+        { month: 'Setembro', success: 87, partial: 0, rollback: 0, canceled: 11, canceledPercent: 11, notExecuted: 0, totalExecuted: 87 },
+        { month: 'Outubro', success: 71, partial: 0, rollback: 0, canceled: 10, canceledPercent: 12, notExecuted: 2, totalExecuted: 71 },
+        { month: 'Novembro', success: 85, partial: 0, rollback: 0, canceled: 0, canceledPercent: 0, notExecuted: 0, totalExecuted: 85 },
+        { month: 'Dezembro', success: 0, partial: 0, rollback: 0, canceled: 0, canceledPercent: 0, notExecuted: 0, totalExecuted: 0 },
+      ];
+    }
+    
+    // Para TASKs e Work Orders, calcular dinamicamente
     const monthMap: Record<string, {
       success: number;
       partial: number;
@@ -91,7 +140,7 @@ const TasksFrontOffice = () => {
         total: stats.total
       };
     });
-  }, [filteredActivities]);
+  }, [filteredActivities, filterType]);
   return <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
@@ -188,13 +237,13 @@ const TasksFrontOffice = () => {
           <Tabs value={filterType} onValueChange={value => setFilterType(value as "all" | "tasks" | "workorders")}>
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="all">
-                Todos ({tasksStats.frontOfficeActivities.length})
+                Todos (878)
               </TabsTrigger>
               <TabsTrigger value="tasks">
-                TASKs ({tasksStats.tasks.length})
+                TASKs (443)
               </TabsTrigger>
               <TabsTrigger value="workorders">
-                Work Orders ({tasksStats.workOrders.length})
+                Work Orders (435)
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -271,7 +320,11 @@ const TasksFrontOffice = () => {
         {/* Chart */}
         <Card className="bg-card/80 backdrop-blur">
           <CardHeader>
-            <CardTitle className="text-center text-primary">Total de Atividades e Cancelamentos - Front Office</CardTitle>
+            <CardTitle className="text-center text-primary">
+              {filterType === "all" ? "Total de Atividades e Cancelamentos - Global" : 
+               filterType === "tasks" ? "Total de Atividades e Cancelamentos - TASKs" : 
+               "Total de Atividades e Cancelamentos - Work Orders"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={400}>
@@ -286,8 +339,21 @@ const TasksFrontOffice = () => {
                 borderRadius: '8px'
               }} />
                 <Legend />
-                <Bar yAxisId="left" dataKey="total" fill="#660099" name="Total" radius={[8, 8, 0, 0]}>
-                  <LabelList dataKey="total" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
+                <Bar 
+                  yAxisId="left" 
+                  dataKey={filterType === "all" ? "totalExecuted" : "total"} 
+                  fill="#660099" 
+                  name={filterType === "all" ? "Total Executado" : "Total"} 
+                  radius={[8, 8, 0, 0]}
+                >
+                  <LabelList 
+                    dataKey={filterType === "all" ? "totalExecuted" : "total"} 
+                    position="center" 
+                    fill="white" 
+                    fontSize={12} 
+                    fontWeight="bold" 
+                    formatter={(value: number) => value > 0 ? value : ''} 
+                  />
                 </Bar>
                 <Line 
                   yAxisId="left" 
@@ -313,8 +379,17 @@ const TasksFrontOffice = () => {
                     <TableHead className="text-primary-foreground font-bold"></TableHead>
                     <TableHead className="text-primary-foreground font-bold text-center">Sucesso</TableHead>
                     <TableHead className="text-primary-foreground font-bold text-center">Parcial</TableHead>
+                    {filterType === "all" && (
+                      <>
+                        <TableHead className="text-primary-foreground font-bold text-center">Rollback</TableHead>
+                        <TableHead className="text-primary-foreground font-bold text-center">% Cancelado</TableHead>
+                        <TableHead className="text-primary-foreground font-bold text-center">Não executado</TableHead>
+                      </>
+                    )}
                     <TableHead className="text-primary-foreground font-bold text-center">Cancelada</TableHead>
-                    <TableHead className="text-primary-foreground font-bold text-center">Total</TableHead>
+                    <TableHead className="text-primary-foreground font-bold text-center">
+                      {filterType === "all" ? "Total Executado" : "Total"}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -322,8 +397,17 @@ const TasksFrontOffice = () => {
                       <TableCell className="font-semibold text-primary">{month.month}</TableCell>
                       <TableCell className="text-center">{month.success}</TableCell>
                       <TableCell className="text-center">{month.partial}</TableCell>
+                      {filterType === "all" && 'rollback' in month && (
+                        <>
+                          <TableCell className="text-center">{month.rollback}</TableCell>
+                          <TableCell className="text-center">{month.canceledPercent}%</TableCell>
+                          <TableCell className="text-center">{month.notExecuted}</TableCell>
+                        </>
+                      )}
                       <TableCell className="text-center">{month.canceled}</TableCell>
-                      <TableCell className="text-center font-semibold">{month.total}</TableCell>
+                      <TableCell className="text-center font-semibold">
+                        {filterType === "all" && 'totalExecuted' in month ? month.totalExecuted : month.total}
+                      </TableCell>
                     </TableRow>)}
                 </TableBody>
               </Table>
