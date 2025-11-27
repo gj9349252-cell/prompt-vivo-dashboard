@@ -12,6 +12,7 @@ import AtividadesEngenharia from "./pages/AtividadesEngenharia";
 import AtividadesMarketing from "./pages/AtividadesMarketing";
 import ConsolidadoHorarioComercial from "./pages/ConsolidadoHorarioComercial";
 import AtividadesPlataforma from "./pages/AtividadesPlataforma";
+import DetalhesMes from "./pages/DetalhesMes";
 
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/atividades-marketing" element={<AtividadesMarketing />} />
           <Route path="/consolidado-horario-comercial" element={<ConsolidadoHorarioComercial />} />
           <Route path="/atividades-plataforma" element={<AtividadesPlataforma />} />
+          <Route path="/detalhes-mes/:mes" element={<DetalhesMes />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
