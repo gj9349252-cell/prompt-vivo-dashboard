@@ -318,7 +318,12 @@ const DataAtividade = () => {
                   <TableRow 
                     key={equipment.name}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => navigate(`/equipamento/${encodeURIComponent(equipment.name)}`)}
+                    onClick={() => {
+                      const params = new URLSearchParams();
+                      if (startDate) params.set('startDate', format(startDate, 'yyyy-MM-dd'));
+                      if (endDate) params.set('endDate', format(endDate, 'yyyy-MM-dd'));
+                      navigate(`/equipamento/${encodeURIComponent(equipment.name)}${params.toString() ? `?${params.toString()}` : ''}`);
+                    }}
                   >
                     <TableCell className="font-medium">{equipment.name}</TableCell>
                     <TableCell className="text-center">{equipment.total}</TableCell>
