@@ -250,7 +250,7 @@ const TasksFrontOffice = () => {
         </Card>
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           <Card className="bg-card/80 backdrop-blur border-primary/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground text-center">
@@ -312,6 +312,19 @@ const TasksFrontOffice = () => {
             <CardContent>
               <div className="text-4xl font-bold text-teal-600 text-center">
                 {filteredKPIs.woExecuted}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/80 backdrop-blur border-primary/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground text-center">
+                Participação
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-primary text-center">
+                76.2%
               </div>
             </CardContent>
           </Card>

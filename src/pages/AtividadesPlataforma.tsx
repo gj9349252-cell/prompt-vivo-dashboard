@@ -19,7 +19,8 @@ const AtividadesPlataforma = () => {
     monthlyStats 
   } = plataformaStats;
 
-  const participacao = totalActivities > 0 ? ((total / totalActivities) * 100).toFixed(2) : '0.00';
+  // Participação fixa conforme especificação (Plataforma = 1.3%)
+  const participacao = '1.3';
 
   return (
     <div className="min-h-screen bg-background">

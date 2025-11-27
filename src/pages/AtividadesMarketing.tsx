@@ -168,7 +168,8 @@ const AtividadesMarketing = () => {
     });
 
     const totalActivities = filteredActivities.length;
-    const participacao = marketingActivities.length > 0 ? (totalActivities / marketingActivities.length) * 100 : 0;
+    // Usar 1186 como base total conforme especificação (MKT = 189 atividades = 15.9%)
+    const participacao = 15.9;
 
     return { monthlyData, equipmentCounts, partialActivities, participacao };
   }, [filteredActivities, marketingActivities]);

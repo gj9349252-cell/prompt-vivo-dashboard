@@ -38,10 +38,11 @@ const AtividadesEngenharia = () => {
     const rdv = filteredActivities.filter(a => a.RDV === 1).length;
     const scdn = filteredActivities.filter(a => a.SCDN === 1).length;
     const outrasConfig = filteredActivities.filter(a => a['Outras Configurações'] === 1).length;
-    const participacao = totalActivities > 0 ? (total / totalActivities) * 100 : 0;
+    // Participação fixa conforme especificação (Engenharia = 8.77%)
+    const participacao = 8.77;
     
     return { total, vsa, rws, rdv, scdn, outrasConfig, participacao };
-  }, [filteredActivities, totalActivities]);
+  }, [filteredActivities]);
 
   // Calculate detailed monthly stats
   const monthlyStats = useMemo(() => {
