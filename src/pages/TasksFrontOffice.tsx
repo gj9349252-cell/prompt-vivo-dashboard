@@ -45,11 +45,7 @@ const TasksFrontOffice = () => {
       total: filteredActivities.length,
       success: filteredActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length,
       partial: filteredActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length,
-      rollback: filteredActivities.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length,
-      authorized: filteredActivities.filter(a => a.STATUS === 'AUTORIZADA').length,
       canceled: filteredActivities.filter(a => a.STATUS === 'CANCELADA').length,
-      notExecuted: filteredActivities.filter(a => a.STATUS === 'NÃO EXECUTADO').length,
-      pendingDoc: filteredActivities.filter(a => a.STATUS === 'PENDENTE DOCUMENTAÇÃO').length,
       woExecuted: filteredActivities.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length
     };
   }, [filteredActivities]);
@@ -59,42 +55,31 @@ const TasksFrontOffice = () => {
     const monthMap: Record<string, {
       success: number;
       partial: number;
-      rollback: number;
-      authorized: number;
       canceled: number;
-      notExecuted: number;
-      pendingDoc: number;
-      woExecuted: number;
       total: number;
     }> = {};
+    
     filteredActivities.forEach(activity => {
       const month = String(activity['MÊS']);
       const year = String(activity['ANO']);
       const key = `${year}-${month.padStart(2, '0')}`;
+      
       if (!monthMap[key]) {
         monthMap[key] = {
           success: 0,
           partial: 0,
-          rollback: 0,
-          authorized: 0,
           canceled: 0,
-          notExecuted: 0,
-          pendingDoc: 0,
-          woExecuted: 0,
           total: 0
         };
       }
+      
       monthMap[key].total++;
       const status = activity.STATUS;
       if (status === 'REALIZADA COM SUCESSO') monthMap[key].success++;
       else if (status === 'REALIZADA PARCIALMENTE') monthMap[key].partial++;
-      else if (status === 'REALIZADO ROLLBACK') monthMap[key].rollback++;
-      else if (status === 'AUTORIZADA') monthMap[key].authorized++;
       else if (status === 'CANCELADA') monthMap[key].canceled++;
-      else if (status === 'NÃO EXECUTADO') monthMap[key].notExecuted++;
-      else if (status === 'PENDENTE DOCUMENTAÇÃO') monthMap[key].pendingDoc++;
-      else if (status === 'WO EXECUTADA SEM TP') monthMap[key].woExecuted++;
     });
+    
     return Object.entries(monthMap).sort(([a], [b]) => a.localeCompare(b)).map(([key, stats]) => {
       const [year, month] = key.split('-');
       const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -102,12 +87,7 @@ const TasksFrontOffice = () => {
         month: monthNames[parseInt(month) - 1],
         success: stats.success,
         partial: stats.partial,
-        rollback: stats.rollback,
-        authorized: stats.authorized,
         canceled: stats.canceled,
-        notExecuted: stats.notExecuted,
-        pendingDoc: stats.pendingDoc,
-        woExecuted: stats.woExecuted,
         total: stats.total
       };
     });
@@ -220,8 +200,8 @@ const TasksFrontOffice = () => {
           </Tabs>
         </Card>
 
-        {/* KPIs - Linha 1 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Card className="bg-card/80 backdrop-blur border-primary/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground text-center">
@@ -251,41 +231,12 @@ const TasksFrontOffice = () => {
           <Card className="bg-card/80 backdrop-blur border-yellow-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground text-center">
-                Realizadas Parcialmente
+                Parcial
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-yellow-600 text-center">
                 {filteredKPIs.partial}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card/80 backdrop-blur border-orange-500/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground text-center">
-                Realizado Rollback
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold text-orange-600 text-center">
-                {filteredKPIs.rollback}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* KPIs - Linha 2 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card className="bg-card/80 backdrop-blur border-blue-500/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground text-center">
-                Autorizada
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold text-blue-600 text-center">
-                {filteredKPIs.authorized}
               </div>
             </CardContent>
           </Card>
@@ -299,32 +250,6 @@ const TasksFrontOffice = () => {
             <CardContent>
               <div className="text-4xl font-bold text-red-600 text-center">
                 {filteredKPIs.canceled}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card/80 backdrop-blur border-gray-500/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground text-center">
-                Não Executado
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold text-gray-600 text-center">
-                {filteredKPIs.notExecuted}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card/80 backdrop-blur border-purple-500/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground text-center">
-                Pendente Documentação
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold text-purple-600 text-center">
-                {filteredKPIs.pendingDoc}
               </div>
             </CardContent>
           </Card>
@@ -384,16 +309,11 @@ const TasksFrontOffice = () => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="sticky top-0 bg-primary z-10">
-                <TableRow>
+                  <TableRow>
                     <TableHead className="text-primary-foreground font-bold"></TableHead>
                     <TableHead className="text-primary-foreground font-bold text-center">Sucesso</TableHead>
                     <TableHead className="text-primary-foreground font-bold text-center">Parcial</TableHead>
-                    <TableHead className="text-primary-foreground font-bold text-center">Rollback</TableHead>
-                    <TableHead className="text-primary-foreground font-bold text-center">Autoriz.</TableHead>
-                    <TableHead className="text-primary-foreground font-bold text-center">Cancel.</TableHead>
-                    <TableHead className="text-primary-foreground font-bold text-center">Não Exec</TableHead>
-                    <TableHead className="text-primary-foreground font-bold text-center">Pend Doc</TableHead>
-                    <TableHead className="text-primary-foreground font-bold text-center">WO s/TP</TableHead>
+                    <TableHead className="text-primary-foreground font-bold text-center">Cancelada</TableHead>
                     <TableHead className="text-primary-foreground font-bold text-center">Total</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -402,12 +322,7 @@ const TasksFrontOffice = () => {
                       <TableCell className="font-semibold text-primary">{month.month}</TableCell>
                       <TableCell className="text-center">{month.success}</TableCell>
                       <TableCell className="text-center">{month.partial}</TableCell>
-                      <TableCell className="text-center">{month.rollback}</TableCell>
-                      <TableCell className="text-center">{month.authorized}</TableCell>
                       <TableCell className="text-center">{month.canceled}</TableCell>
-                      <TableCell className="text-center">{month.notExecuted}</TableCell>
-                      <TableCell className="text-center">{month.pendingDoc}</TableCell>
-                      <TableCell className="text-center">{month.woExecuted}</TableCell>
                       <TableCell className="text-center font-semibold">{month.total}</TableCell>
                     </TableRow>)}
                 </TableBody>
