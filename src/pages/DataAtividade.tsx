@@ -1,23 +1,23 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Filter, TrendingUp, TrendingDown, Activity, AlertCircle, XCircle, Clock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LabelList } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 import { useState, useMemo } from "react";
-import { Input } from "@/components/ui/input";
 
 const DataAtividade = () => {
   const navigate = useNavigate();
-  const { data, totalActivities } = useActivitiesData();
+  const { data, equipmentData, totalActivities } = useActivitiesData();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // Filter all activities by date range
-  const filteredActivities = useMemo(() => {
-    if (!startDate && !endDate) return data;
+  // Filter equipment data by date range
+  const filteredEquipmentData = useMemo(() => {
+    if (!startDate && !endDate) return equipmentData;
 
-    return data.filter(activity => {
+    // Filter activities by date first
+    const filteredActivities = data.filter(activity => {
       const activityDate = activity['DATA/HORA INÍCIO'];
       if (!activityDate) return false;
       
@@ -43,92 +43,65 @@ const DataAtividade = () => {
       }
       return true;
     });
-  }, [data, startDate, endDate]);
 
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const total = filteredActivities.length;
-    
-    const isRealizada = (activity: any) => {
-      const status = activity['Status da atividade'];
-      return status?.includes('EXECUTAD') && 
-             !status?.includes('NÃO EXECUTAD') && 
-             !status?.includes('CANCELAD');
-    };
-    
-    const successCount = filteredActivities.filter(isRealizada).length;
-    const partialCount = filteredActivities.filter(a => a['Status da atividade']?.includes('PARCIAL')).length;
-    const rollbackCount = filteredActivities.filter(a => 
-      a['Status da atividade']?.includes('ROLLBACK') || a['Status da atividade']?.includes('AUTORIZAÇÃO')
-    ).length;
-    const canceledCount = filteredActivities.filter(a => a['Status da atividade']?.includes('CANCELAD')).length;
-    const notExecutedCount = filteredActivities.filter(a => 
-      a['Status da atividade']?.includes('NÃO EXECUTAD') || a['Status da atividade']?.includes('WO EXECUTADA SEM TP')
-    ).length;
+    // Recalculate equipment totals from filtered activities
+    const equipmentFields = [
+      'Freeview',
+      'Evento Temporal',
+      'Novos Canais',
+      'Novas Cidades',
+      'VSA',
+      'VSPP',
+      'RWs',
+      'SCDN',
+      'CDN',
+      'FHR',
+      'RHR',
+      'SCR',
+      'RDV',
+      'DVB',
+      'SWP',
+      'OPCH',
+      'Dispositivos',
+      'Base de dados',
+      'Outras Configurações'
+    ];
 
-    // Monthly aggregation
-    const monthlyData: Record<string, any> = {};
-    filteredActivities.forEach(activity => {
-      const dateStr = activity['DATA/HORA INÍCIO'];
-      if (!dateStr) return;
-      
-      const [day, month, year] = dateStr.split('/');
-      if (!month || !year) return;
-      
-      const monthKey = `${month.padStart(2, '0')}/${year}`;
-      
-      if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = {
-          total: 0,
-          success: 0,
-          partial: 0,
-          rollback: 0,
-          canceled: 0,
-          notExecuted: 0,
-        };
-      }
-      
-      monthlyData[monthKey].total++;
-      if (isRealizada(activity)) monthlyData[monthKey].success++;
-      if (activity['Status da atividade']?.includes('PARCIAL')) monthlyData[monthKey].partial++;
-      if (activity['Status da atividade']?.includes('ROLLBACK') || activity['Status da atividade']?.includes('AUTORIZAÇÃO')) {
-        monthlyData[monthKey].rollback++;
-      }
-      if (activity['Status da atividade']?.includes('CANCELAD')) monthlyData[monthKey].canceled++;
-      if (activity['Status da atividade']?.includes('NÃO EXECUTAD') || activity['Status da atividade']?.includes('WO EXECUTADA SEM TP')) {
-        monthlyData[monthKey].notExecuted++;
-      }
+    const totals: Record<string, number> = {};
+    equipmentFields.forEach(field => {
+      totals[field] = 0;
     });
 
-    const monthlyStats = Object.entries(monthlyData)
-      .map(([key, stats]: [string, any]) => {
-        const [month, year] = key.split('/');
-        return {
-          monthKey: key,
-          month: parseInt(month),
-          year: parseInt(year),
-          monthName: new Date(parseInt(year), parseInt(month) - 1).toLocaleString('pt-BR', { month: 'short' }).replace('.', ''),
-          ...stats,
-        };
-      })
-      .sort((a, b) => {
-        if (a.year !== b.year) return a.year - b.year;
-        return a.month - b.month;
+    filteredActivities.forEach(activity => {
+      equipmentFields.forEach(field => {
+        if (activity[field as keyof typeof activity] === 1) {
+          totals[field]++;
+        }
       });
+    });
 
-    const participacao = totalActivities > 0 ? ((total / totalActivities) * 100).toFixed(2) : '0.00';
+    const totalOccurrences = Object.values(totals).reduce((sum, val) => sum + val, 0);
 
-    return {
-      total,
-      successCount,
-      partialCount,
-      rollbackCount,
-      canceledCount,
-      notExecutedCount,
-      monthlyStats,
-      participacao,
-    };
-  }, [filteredActivities, totalActivities]);
+    return equipmentFields
+      .map(field => ({
+        name: field,
+        total: totals[field],
+        percentage: totalOccurrences > 0 ? (totals[field] / totalOccurrences) * 100 : 0
+      }))
+      .filter(item => item.total > 0)
+      .sort((a, b) => b.total - a.total);
+  }, [data, equipmentData, startDate, endDate]);
+
+  const handleEquipmentClick = (equipmentName: string) => {
+    if (startDate || endDate) {
+      const params = new URLSearchParams();
+      if (startDate) params.set('startDate', startDate);
+      if (endDate) params.set('endDate', endDate);
+      navigate(`/equipamento/${encodeURIComponent(equipmentName)}?${params.toString()}`);
+    } else {
+      navigate(`/equipamento/${encodeURIComponent(equipmentName)}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -180,7 +153,7 @@ const DataAtividade = () => {
           {(startDate || endDate) && (
             <div className="mt-4 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                <span className="font-semibold text-primary">{stats.total}</span> atividades encontradas no período
+                Período selecionado aplicado aos equipamentos
               </p>
               <Button 
                 variant="outline" 
@@ -193,193 +166,40 @@ const DataAtividade = () => {
           )}
         </Card>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
-          <Card className="shadow-card hover:shadow-elevated transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Activity className="w-4 h-4" />
-                Total
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-primary">{stats.total}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-card hover:shadow-elevated transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Sucesso
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-green-600">{stats.successCount}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-card hover:shadow-elevated transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
-                Parcial
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-yellow-600">{stats.partialCount}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-card hover:shadow-elevated transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingDown className="w-4 h-4" />
-                Rollback
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-blue-600">{stats.rollbackCount}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-card hover:shadow-elevated transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <XCircle className="w-4 h-4" />
-                Cancelados
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-orange-600">{stats.canceledCount}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-card hover:shadow-elevated transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Não Exec
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-red-600">{stats.notExecutedCount}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-card hover:shadow-elevated transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Activity className="w-4 h-4" />
-                Participação
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-primary">{stats.participacao}%</p>
-            </CardContent>
-          </Card>
+        {/* Equipment Cards */}
+        <div>
+          <h2 className="text-2xl font-semibold text-foreground mb-4">Equipamentos</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {filteredEquipmentData.map((equipment) => (
+              <Card
+                key={equipment.name}
+                className="shadow-card hover:shadow-elevated transition-all cursor-pointer hover:scale-105 hover:border-primary border-2"
+                onClick={() => handleEquipmentClick(equipment.name)}
+              >
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold text-foreground">
+                    {equipment.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <p className="text-4xl font-bold text-primary">{equipment.total}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {equipment.percentage.toFixed(1)}% do total
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
 
-        {/* Chart and Table Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Chart */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="text-xl">Consolidado Mensal</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <ComposedChart data={stats.monthlyStats} barGap={0} barCategoryGap={20}>
-                  <XAxis 
-                    dataKey="monthName" 
-                    stroke="hsl(var(--muted-foreground))" 
-                    style={{ fontSize: '12px' }}
-                  />
-                  <YAxis yAxisId="left" hide={true} />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px"
-                    }}
-                  />
-                  <Legend />
-                  <Bar 
-                    yAxisId="left"
-                    dataKey="total" 
-                    fill="#660099" 
-                    name="Total Executado" 
-                    radius={[8, 8, 0, 0]}
-                  >
-                    <LabelList 
-                      dataKey="total" 
-                      position="center" 
-                      fill="white" 
-                      fontSize={12} 
-                      fontWeight="bold" 
-                      formatter={(value: number) => value > 0 ? value : ''} 
-                    />
-                  </Bar>
-                  <Line 
-                    yAxisId="left"
-                    type="monotone" 
-                    dataKey="canceled" 
-                    stroke="#F59E0B" 
-                    strokeWidth={2} 
-                    name="Canceladas"
-                    dot={{ fill: '#F59E0B', r: 4 }}
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Monthly Table */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="text-xl">Detalhamento Mensal</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left py-2 px-2 font-semibold">Mês</th>
-                      <th className="text-right py-2 px-2 font-semibold">Sucesso</th>
-                      <th className="text-right py-2 px-2 font-semibold">Parcial</th>
-                      <th className="text-right py-2 px-2 font-semibold">Rollback</th>
-                      <th className="text-right py-2 px-2 font-semibold">Cancel.</th>
-                      <th className="text-right py-2 px-2 font-semibold">Não Exec</th>
-                      <th className="text-right py-2 px-2 font-semibold">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stats.monthlyStats.map((stat, index) => (
-                      <tr key={index} className="border-b border-border hover:bg-muted/50 transition-colors">
-                        <td className="py-2 px-2 font-medium">{stat.monthName}</td>
-                        <td className="py-2 px-2 text-right text-green-600 font-semibold">{stat.success}</td>
-                        <td className="py-2 px-2 text-right text-yellow-600">{stat.partial}</td>
-                        <td className="py-2 px-2 text-right text-blue-600">{stat.rollback}</td>
-                        <td className="py-2 px-2 text-right text-orange-600">{stat.canceled}</td>
-                        <td className="py-2 px-2 text-right text-red-600">{stat.notExecuted}</td>
-                        <td className="py-2 px-2 text-right font-bold text-primary">{stat.total}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Explanatory Text */}
+        {/* Info Text */}
         <Card className="shadow-card">
           <CardContent className="pt-6">
             <p className="text-muted-foreground leading-relaxed">
-              Esta visão apresenta todas as atividades registradas no sistema, permitindo análise abrangente 
-              por período. Os filtros de data início e fim possibilitam a seleção de intervalos customizados 
-              para investigação detalhada de tendências, padrões sazonais e distribuição temporal das atividades 
-              programadas e executadas pela equipe técnica.
+              Clique em um equipamento para ver detalhes das atividades relacionadas. 
+              Use os filtros de data acima para visualizar atividades de um período específico.
             </p>
           </CardContent>
         </Card>

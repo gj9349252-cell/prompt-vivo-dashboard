@@ -9,14 +9,15 @@ const EquipamentoDetalhes = () => {
   const navigate = useNavigate();
   const { equipmentName } = useParams<{ equipmentName: string }>();
   const [searchParams] = useSearchParams();
-  const selectedDate = searchParams.get('date');
+  const startDate = searchParams.get('startDate');
+  const endDate = searchParams.get('endDate');
   const { getActivitiesByEquipment, equipmentData } = useActivitiesData();
 
   const decodedEquipmentName = equipmentName ? decodeURIComponent(equipmentName) : '';
   const allActivities = getActivitiesByEquipment(decodedEquipmentName);
   
   const activities = useMemo(() => {
-    if (!selectedDate) return allActivities;
+    if (!startDate && !endDate) return allActivities;
     
     return allActivities.filter(activity => {
       const activityDate = activity['DATA/HORA INÍCIO'];
@@ -36,9 +37,16 @@ const EquipamentoDetalhes = () => {
       const paddedMonth = month.padStart(2, '0');
       const activityFullDate = `${fullYear}-${paddedMonth}-${paddedDay}`;
       
-      return activityFullDate === selectedDate;
+      if (startDate && endDate) {
+        return activityFullDate >= startDate && activityFullDate <= endDate;
+      } else if (startDate) {
+        return activityFullDate >= startDate;
+      } else if (endDate) {
+        return activityFullDate <= endDate;
+      }
+      return true;
     });
-  }, [allActivities, selectedDate]);
+  }, [allActivities, startDate, endDate]);
 
   const equipmentInfo = equipmentData.find(e => e.name === decodedEquipmentName);
   
@@ -63,14 +71,16 @@ const EquipamentoDetalhes = () => {
           <div className="flex-1">
             <h1 className="text-3xl font-bold">{decodedEquipmentName}</h1>
             <p className="text-white/90 text-sm mt-1">Detalhamento de eventos por equipamento</p>
-            {selectedDate && (
+            {(startDate || endDate) && (
               <p className="text-white/90 text-sm mt-1 flex items-center gap-2">
                 <Filter className="w-4 h-4" />
-                Filtrado por: {new Date(selectedDate).toLocaleDateString('pt-BR')}
+                Filtrado por período: 
+                {startDate && ` de ${new Date(startDate).toLocaleDateString('pt-BR')}`}
+                {endDate && ` até ${new Date(endDate).toLocaleDateString('pt-BR')}`}
               </p>
             )}
           </div>
-          {selectedDate && (
+          {(startDate || endDate) && (
             <Button
               variant="ghost"
               size="sm"
@@ -94,10 +104,10 @@ const EquipamentoDetalhes = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">
-                  {selectedDate ? 'Ocorrências na Data' : 'Total de Ocorrências'}
+                  {(startDate || endDate) ? 'Ocorrências no Período' : 'Total de Ocorrências'}
                 </p>
                 <p className="text-3xl font-bold text-primary">
-                  {selectedDate ? filteredTotal : (equipmentInfo?.total || 0)}
+                  {(startDate || endDate) ? filteredTotal : (equipmentInfo?.total || 0)}
                 </p>
               </div>
             </div>
@@ -122,10 +132,10 @@ const EquipamentoDetalhes = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">
-                  {selectedDate ? 'Percentual da Data' : 'Percentual do Total'}
+                  {(startDate || endDate) ? 'Percentual do Período' : 'Percentual do Total'}
                 </p>
                 <p className="text-3xl font-bold text-green-600">
-                  {selectedDate 
+                  {(startDate || endDate) 
                     ? filteredPercentage.toFixed(1)
                     : equipmentInfo?.percentage.toFixed(1)
                   }%
@@ -138,8 +148,8 @@ const EquipamentoDetalhes = () => {
         {/* Events Table */}
         <Card className="p-6 shadow-card">
           <h2 className="text-xl font-bold text-foreground mb-6">
-            {selectedDate 
-              ? `Eventos de ${new Date(selectedDate).toLocaleDateString('pt-BR')} - ${decodedEquipmentName}`
+            {(startDate || endDate)
+              ? `Eventos Filtrados - ${decodedEquipmentName}`
               : `Histórico de Eventos - ${decodedEquipmentName}`
             }
           </h2>
