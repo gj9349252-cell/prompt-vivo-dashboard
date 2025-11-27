@@ -428,7 +428,7 @@ export const useActivitiesData = () => {
   }, [engineeringActivities, data, equipmentFields]);
 
   const marketingActivities = useMemo(() => {
-    return data.filter(activity => activity['Área Solicitante'] === 'MARKETING' || activity['Área Solicitante'] === 'MKT CONTEÚDOS');
+    return data.filter(activity => activity['Demanda - MKT Conteúdos'] === 1);
   }, [data]);
 
   const platformActivities = useMemo(() => {
@@ -546,14 +546,14 @@ export const useActivitiesData = () => {
 
   const horarioComercialStats = useMemo(() => {
     const total = horarioComercialActivities.length;
-    const successCount = horarioComercialActivities.filter(isRealizada).length;
-    const partialCount = horarioComercialActivities.filter(a => a['Status da atividade']?.includes('PARCIAL')).length;
+    const successCount = horarioComercialActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
+    const partialCount = horarioComercialActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length;
     const rollbackCount = horarioComercialActivities.filter(a => 
-      a['Status da atividade']?.includes('ROLLBACK') || a['Status da atividade']?.includes('AUTORIZAÇÃO')
+      a.STATUS === 'REALIZADO ROLLBACK' || a.STATUS === 'AUTORIZADA'
     ).length;
-    const canceledCount = horarioComercialActivities.filter(a => a['Status da atividade']?.includes('CANCELAD')).length;
+    const canceledCount = horarioComercialActivities.filter(a => a.STATUS === 'CANCELADA').length;
     const notExecutedCount = horarioComercialActivities.filter(a => 
-      a['Status da atividade']?.includes('NÃO EXECUTAD') || isWoSemTP(a)
+      a.STATUS === 'NÃO EXECUTADO' || isWoSemTP(a)
     ).length;
 
     const monthlyData: Record<string, any> = {};
@@ -578,13 +578,13 @@ export const useActivitiesData = () => {
       }
       
       monthlyData[monthKey].total++;
-      if (isRealizada(activity)) monthlyData[monthKey].success++;
-      if (activity['Status da atividade']?.includes('PARCIAL')) monthlyData[monthKey].partial++;
-      if (activity['Status da atividade']?.includes('ROLLBACK') || activity['Status da atividade']?.includes('AUTORIZAÇÃO')) {
+      if (activity.STATUS === 'REALIZADA COM SUCESSO') monthlyData[monthKey].success++;
+      if (activity.STATUS === 'REALIZADA PARCIALMENTE') monthlyData[monthKey].partial++;
+      if (activity.STATUS === 'REALIZADO ROLLBACK' || activity.STATUS === 'AUTORIZADA') {
         monthlyData[monthKey].rollback++;
       }
-      if (activity['Status da atividade']?.includes('CANCELAD')) monthlyData[monthKey].canceled++;
-      if (activity['Status da atividade']?.includes('NÃO EXECUTAD') || isWoSemTP(activity)) {
+      if (activity.STATUS === 'CANCELADA') monthlyData[monthKey].canceled++;
+      if (activity.STATUS === 'NÃO EXECUTADO' || isWoSemTP(activity)) {
         monthlyData[monthKey].notExecuted++;
       }
     });
@@ -618,20 +618,20 @@ export const useActivitiesData = () => {
 
   // Plataforma activities and stats
   const plataformaActivities = useMemo(
-    () => data.filter(activity => activity['Execução Plataforma BR'] === 1),
+    () => data.filter(activity => activity['Demanda - Plataforma'] === 1),
     [data]
   );
 
   const plataformaStats = useMemo(() => {
     const total = plataformaActivities.length;
-    const successCount = plataformaActivities.filter(isRealizada).length;
-    const partialCount = plataformaActivities.filter(a => a['Status da atividade']?.includes('PARCIAL')).length;
+    const successCount = plataformaActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
+    const partialCount = plataformaActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length;
     const rollbackCount = plataformaActivities.filter(a => 
-      a['Status da atividade']?.includes('ROLLBACK') || a['Status da atividade']?.includes('AUTORIZAÇÃO')
+      a.STATUS === 'REALIZADO ROLLBACK' || a.STATUS === 'AUTORIZADA'
     ).length;
-    const canceledCount = plataformaActivities.filter(a => a['Status da atividade']?.includes('CANCELAD')).length;
+    const canceledCount = plataformaActivities.filter(a => a.STATUS === 'CANCELADA').length;
     const notExecutedCount = plataformaActivities.filter(a => 
-      a['Status da atividade']?.includes('NÃO EXECUTAD') || isWoSemTP(a)
+      a.STATUS === 'NÃO EXECUTADO' || isWoSemTP(a)
     ).length;
 
     const monthlyData: Record<string, any> = {};
@@ -656,13 +656,13 @@ export const useActivitiesData = () => {
       }
       
       monthlyData[monthKey].total++;
-      if (isRealizada(activity)) monthlyData[monthKey].success++;
-      if (activity['Status da atividade']?.includes('PARCIAL')) monthlyData[monthKey].partial++;
-      if (activity['Status da atividade']?.includes('ROLLBACK') || activity['Status da atividade']?.includes('AUTORIZAÇÃO')) {
+      if (activity.STATUS === 'REALIZADA COM SUCESSO') monthlyData[monthKey].success++;
+      if (activity.STATUS === 'REALIZADA PARCIALMENTE') monthlyData[monthKey].partial++;
+      if (activity.STATUS === 'REALIZADO ROLLBACK' || activity.STATUS === 'AUTORIZADA') {
         monthlyData[monthKey].rollback++;
       }
-      if (activity['Status da atividade']?.includes('CANCELAD')) monthlyData[monthKey].canceled++;
-      if (activity['Status da atividade']?.includes('NÃO EXECUTAD') || isWoSemTP(activity)) {
+      if (activity.STATUS === 'CANCELADA') monthlyData[monthKey].canceled++;
+      if (activity.STATUS === 'NÃO EXECUTADO' || isWoSemTP(activity)) {
         monthlyData[monthKey].notExecuted++;
       }
     });

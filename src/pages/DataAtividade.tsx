@@ -1,11 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ArrowLeft, Filter, Calendar } from "lucide-react";
+import { ArrowLeft, Filter, CalendarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 import { useState, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -18,24 +22,30 @@ import {
 const DataAtividade = () => {
   const navigate = useNavigate();
   const { data, equipmentData } = useActivitiesData();
-  const [selectedDate, setSelectedDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
-  // Filter equipment data by selected date
+  // Filter equipment data by date range
   const filteredEquipmentData = useMemo(() => {
-    if (!selectedDate) return equipmentData;
+    if (!startDate && !endDate) return equipmentData;
 
-    // Convert selected date (YYYY-MM-DD) to DD/MM/YYYY for comparison
-    const [year, month, day] = selectedDate.split('-');
-    const formattedSelectedDate = `${day}/${month}/${year}`;
-
-    // Filter activities by date
+    // Filter activities by date range
     const filteredActivities = data.filter(activity => {
-      const activityDate = activity['DATA/HORA INÍCIO'];
-      if (!activityDate) return false;
+      const activityDateStr = activity['DATA/HORA INÍCIO'];
+      if (!activityDateStr) return false;
       
-      // Extract just the date part (DD/MM/YYYY)
-      const activityDateOnly = activityDate.split(' ')[0];
-      return activityDateOnly === formattedSelectedDate;
+      const [day, month, year] = activityDateStr.split('/');
+      const activityDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      
+      if (startDate && endDate) {
+        return activityDate >= startDate && activityDate <= endDate;
+      } else if (startDate) {
+        return activityDate >= startDate;
+      } else if (endDate) {
+        return activityDate <= endDate;
+      }
+      
+      return true;
     });
 
     // Recalculate equipment totals from filtered activities
@@ -84,7 +94,7 @@ const DataAtividade = () => {
       }))
       .filter(item => item.total > 0)
       .sort((a, b) => b.total - a.total);
-  }, [data, equipmentData, selectedDate]);
+  }, [data, equipmentData, startDate, endDate]);
 
   // Calculate KPIs
   const totalOccurrences = filteredEquipmentData.reduce((sum, item) => sum + item.total, 0);
@@ -118,20 +128,62 @@ const DataAtividade = () => {
             <Filter className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-semibold text-foreground">Filtrar por Período</h2>
           </div>
-          <div className="max-w-md">
-            <label className="text-sm text-muted-foreground mb-2 block">Selecionar Data</label>
-            <div className="relative">
-              <Input 
-                type="date" 
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full"
-                placeholder="dd/mm/aaaa"
-              />
-              <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">Data Início</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecionar data</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">Data Fim</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecionar data</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
-          {selectedDate && (
+          {(startDate || endDate) && (
             <div className="mt-4 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
                 Período selecionado aplicado aos dados
@@ -139,7 +191,10 @@ const DataAtividade = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => setSelectedDate("")}
+                onClick={() => {
+                  setStartDate(undefined);
+                  setEndDate(undefined);
+                }}
               >
                 Limpar Filtro
               </Button>
