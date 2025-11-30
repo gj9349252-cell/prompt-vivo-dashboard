@@ -127,8 +127,14 @@ const TasksFrontOffice = () => {
         };
       }
       
-      monthMap[key].total++;
       const status = activity.STATUS;
+      
+      // Para Work Orders, excluir WO EXECUTADA SEM TP do total
+      if (filterType === "workorders" && status === 'WO EXECUTADA SEM TP') {
+        return; // Não contar esta atividade
+      }
+      
+      monthMap[key].total++;
       if (status === 'REALIZADA COM SUCESSO') monthMap[key].success++;
       else if (status === 'REALIZADA PARCIALMENTE') monthMap[key].partial++;
       else if (status === 'CANCELADA') monthMap[key].canceled++;
