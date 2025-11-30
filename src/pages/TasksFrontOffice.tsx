@@ -70,13 +70,18 @@ const TasksFrontOffice = () => {
       };
     }
     
-    // Para TASKs e Work Orders, calcular dinamicamente
+    const woSemTP = filteredActivities.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length;
+    
+    // Para Work Orders, excluir WO sem TP do total
+    // Para TASKs, manter comportamento atual
     return {
-      total: filteredActivities.length,
+      total: filterType === "workorders" 
+        ? filteredActivities.length - woSemTP
+        : filteredActivities.length,
       success: filteredActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length,
       partial: filteredActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length,
       canceled: filteredActivities.filter(a => a.STATUS === 'CANCELADA').length,
-      woExecuted: filteredActivities.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length
+      woExecuted: woSemTP
     };
   }, [filteredActivities, filterType]);
 
@@ -243,7 +248,7 @@ const TasksFrontOffice = () => {
                 TASKs (443)
               </TabsTrigger>
               <TabsTrigger value="workorders">
-                Work Orders (435)
+                Work Orders (443)
               </TabsTrigger>
             </TabsList>
           </Tabs>
