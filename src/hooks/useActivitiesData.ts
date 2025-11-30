@@ -401,7 +401,7 @@ export const useActivitiesData = () => {
   };
 
   const engineeringActivities = useMemo(() => {
-    return data.filter(activity => activity['Área Solicitante'] === 'ENGENHARIA');
+    return data.filter(activity => activity['Demanda - Engenharia'] === 1);
   }, [data]);
 
   const engineeringStats = useMemo(() => {
