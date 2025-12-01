@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { LineChart, Line, ComposedChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
 
 const ConsolidadoAnual = () => {
@@ -133,13 +133,7 @@ const ConsolidadoAnual = () => {
             Volume de Atividades ao Longo do Ano
           </h2>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={annualData}>
-              <defs>
-                <linearGradient id="colorActivities" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#660099" stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor="#660099" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
+            <ComposedChart data={annualData} barGap={0} barCategoryGap={20}>
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
               <YAxis hide={true} />
               <Tooltip 
@@ -148,16 +142,32 @@ const ConsolidadoAnual = () => {
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "8px"
                 }}
-                formatter={(value: number) => [value, 'Atividades']}
               />
-              <Area 
-                type="monotone" 
+              <Legend />
+              <Bar 
                 dataKey="total" 
-                stroke="#660099" 
-                strokeWidth={2}
-                fill="url(#colorActivities)" 
+                fill="#660099" 
+                name="Total de Atividades" 
+                radius={[8, 8, 0, 0]}
+              >
+                <LabelList 
+                  dataKey="total" 
+                  position="center" 
+                  fill="white" 
+                  fontSize={12} 
+                  fontWeight="bold" 
+                  formatter={(value: number) => value > 0 ? value : ''} 
+                />
+              </Bar>
+              <Line 
+                type="monotone" 
+                dataKey="canceled" 
+                stroke="#F59E0B" 
+                strokeWidth={2} 
+                name="Canceladas"
+                dot={{ fill: '#F59E0B', r: 4 }}
               />
-            </AreaChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </Card>
       </main>
