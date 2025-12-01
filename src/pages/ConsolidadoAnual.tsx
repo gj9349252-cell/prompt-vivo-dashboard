@@ -89,46 +89,8 @@ const ConsolidadoAnual = () => {
           </Card>
         </div>
 
-        {/* Main Chart - Success Rate */}
+        {/* Main Chart - Activities Volume */}
         <Card className="p-6 shadow-card mb-8">
-          <h2 className="text-xl font-bold text-foreground mb-6">
-            Taxa de Sucesso Mensal (%)
-          </h2>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={annualData}>
-              <defs>
-                <linearGradient id="colorSuccess" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis 
-                domain={[85, 100]} 
-                hide={true}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px"
-                }}
-                formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Sucesso']}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="successRate" 
-                stroke="#660099" 
-                strokeWidth={3}
-                dot={{ r: 5, fill: "#660099" }}
-                activeDot={{ r: 7 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </Card>
-
-        {/* Secondary Chart - Activities Volume */}
-        <Card className="p-6 shadow-card">
           <h2 className="text-xl font-bold text-foreground mb-6">
             Volume de Atividades ao Longo do Ano
           </h2>
@@ -168,6 +130,44 @@ const ConsolidadoAnual = () => {
                 dot={{ fill: '#F59E0B', r: 4 }}
               />
             </ComposedChart>
+          </ResponsiveContainer>
+        </Card>
+
+        {/* Secondary Chart - Success Rate */}
+        <Card className="p-6 shadow-card">
+          <h2 className="text-xl font-bold text-foreground mb-6">
+            Taxa de Sucesso Mensal (%)
+          </h2>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={annualData}>
+              <defs>
+                <linearGradient id="colorSuccess" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+              <YAxis 
+                domain={[85, 100]} 
+                hide={true}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px"
+                }}
+                formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Sucesso']}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="successRate" 
+                stroke="#660099" 
+                strokeWidth={3}
+                dot={{ r: 5, fill: "#660099" }}
+                activeDot={{ r: 7 }}
+              />
+            </LineChart>
           </ResponsiveContainer>
         </Card>
       </main>
