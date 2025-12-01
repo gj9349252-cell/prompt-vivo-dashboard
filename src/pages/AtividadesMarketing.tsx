@@ -55,31 +55,32 @@ const MonthlyStatsTable = ({
 }) => {
   const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   const monthsFull = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-  
-  return (
-    <ScrollArea className="w-full">
+  return <ScrollArea className="w-full">
       <Table>
         <TableHeader>
           <TableRow className="gradient-header border-none hover:bg-transparent">
             <TableHead className="text-white text-center font-semibold h-10">Mês</TableHead>
-            <TableHead className="text-white text-center font-semibold h-10">✓</TableHead>
-            <TableHead className="text-white text-center font-semibold h-10">~</TableHead>
-            <TableHead className="text-white text-center font-semibold h-10">↩</TableHead>
-            <TableHead className="text-white text-center font-semibold h-10">✕</TableHead>
-            <TableHead className="text-white text-center font-semibold h-10">—</TableHead>
-            <TableHead className="text-white text-center font-bold h-10">Σ</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">Sucesso</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">Parcial</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">Rollback</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">Cancelado</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">Não executado</TableHead>
+            <TableHead className="text-white text-center font-bold h-10">Total</TableHead>
             <TableHead className="text-white text-center font-semibold h-10">% ✕</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {monthsFull.map((monthFull, index) => {
-            const data = monthlyData[monthFull] || { success: 0, partial: 0, rollback: 0, canceled: 0, notExecuted: 0, total: 0 };
-            const cancelPercentage = data.total > 0 ? (data.canceled / data.total * 100).toFixed(1) : '0.0';
-            return (
-              <TableRow 
-                key={monthFull} 
-                className="hover:bg-purple-50/50 transition-colors border-border/30"
-              >
+          const data = monthlyData[monthFull] || {
+            success: 0,
+            partial: 0,
+            rollback: 0,
+            canceled: 0,
+            notExecuted: 0,
+            total: 0
+          };
+          const cancelPercentage = data.total > 0 ? (data.canceled / data.total * 100).toFixed(1) : '0.0';
+          return <TableRow key={monthFull} className="hover:bg-purple-50/50 transition-colors border-border/30">
                 <TableCell className="text-left font-medium py-1.5 px-3">{months[index]}</TableCell>
                 <TableCell className="text-center py-1.5 px-3">{data.success}</TableCell>
                 <TableCell className="text-center py-1.5 px-3">{data.partial}</TableCell>
@@ -88,14 +89,12 @@ const MonthlyStatsTable = ({
                 <TableCell className="text-center py-1.5 px-3">{data.notExecuted}</TableCell>
                 <TableCell className="text-center font-bold py-1.5 px-3 bg-purple-50/30">{data.total}</TableCell>
                 <TableCell className="text-center py-1.5 px-3">{cancelPercentage}%</TableCell>
-              </TableRow>
-            );
-          })}
+              </TableRow>;
+        })}
         </TableBody>
       </Table>
       <ScrollBar orientation="horizontal" />
-    </ScrollArea>
-  );
+    </ScrollArea>;
 };
 const AtividadesMarketing = () => {
   const navigate = useNavigate();
@@ -105,29 +104,31 @@ const AtividadesMarketing = () => {
   } = useActivitiesData();
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
-
   const filteredActivities = useMemo(() => {
     if (!startDate && !endDate) return marketingActivities;
-
     return marketingActivities.filter(activity => {
       const activityDate = activity['DATA/HORA INÍCIO'];
       const [day, month, year] = activityDate.split('/');
       const activityFullDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-
       if (startDate && activityFullDate < startDate) return false;
       if (endDate && activityFullDate > endDate) return false;
       return true;
     });
   }, [marketingActivities, startDate, endDate]);
-
   const filteredStats = useMemo(() => {
     // Initialize all 12 months with default values
     const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
     const monthlyData: Record<string, any> = {};
     months.forEach(month => {
-      monthlyData[month] = { success: 0, partial: 0, rollback: 0, canceled: 0, notExecuted: 0, total: 0 };
+      monthlyData[month] = {
+        success: 0,
+        partial: 0,
+        rollback: 0,
+        canceled: 0,
+        notExecuted: 0,
+        total: 0
+      };
     });
-
     const equipmentCounts: Record<string, number> = {
       'MKT Conteúdos': 0,
       'Freeview': 0,
@@ -137,24 +138,24 @@ const AtividadesMarketing = () => {
       'Outras Configurações': 0
     };
     const partialActivities: any[] = [];
-
     filteredActivities.forEach(activity => {
       const month = activity['MÊS'];
       const monthName = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][month - 1];
-      
       if (!monthlyData[monthName]) {
-        monthlyData[monthName] = { success: 0, partial: 0, rollback: 0, canceled: 0, notExecuted: 0, total: 0 };
+        monthlyData[monthName] = {
+          success: 0,
+          partial: 0,
+          rollback: 0,
+          canceled: 0,
+          notExecuted: 0,
+          total: 0
+        };
       }
-      
       monthlyData[monthName].total++;
-      if (activity.STATUS === 'REALIZADA COM SUCESSO') monthlyData[monthName].success++;
-      else if (activity.STATUS === 'REALIZADA PARCIALMENTE') {
+      if (activity.STATUS === 'REALIZADA COM SUCESSO') monthlyData[monthName].success++;else if (activity.STATUS === 'REALIZADA PARCIALMENTE') {
         monthlyData[monthName].partial++;
         partialActivities.push(activity);
-      }
-      else if (activity.STATUS === 'REALIZADO ROLLBACK') monthlyData[monthName].rollback++;
-      else if (activity.STATUS === 'CANCELADA') monthlyData[monthName].canceled++;
-      else if (activity.STATUS === 'NÃO EXECUTADO') monthlyData[monthName].notExecuted++;
+      } else if (activity.STATUS === 'REALIZADO ROLLBACK') monthlyData[monthName].rollback++;else if (activity.STATUS === 'CANCELADA') monthlyData[monthName].canceled++;else if (activity.STATUS === 'NÃO EXECUTADO') monthlyData[monthName].notExecuted++;
 
       // Count by equipment type (check individual fields)
       if (activity['Demanda - MKT Conteúdos'] === 1 || activity['Área Solicitante'] === 'MKT CONTEÚDOS') {
@@ -166,12 +167,15 @@ const AtividadesMarketing = () => {
       if (activity['Novas Cidades'] === 1) equipmentCounts['Novas Cidades']++;
       if (activity['Outras Configurações'] === 1) equipmentCounts['Outras Configurações']++;
     });
-
     const totalActivities = filteredActivities.length;
     // Usar 1186 como base total conforme especificação (MKT = 189 atividades = 15.9%)
     const participacao = 15.9;
-
-    return { monthlyData, equipmentCounts, partialActivities, participacao };
+    return {
+      monthlyData,
+      equipmentCounts,
+      partialActivities,
+      participacao
+    };
   }, [filteredActivities, marketingActivities]);
 
   // Prepare chart data - total + canceladas
@@ -219,25 +223,15 @@ const AtividadesMarketing = () => {
               <label className="text-sm text-muted-foreground mb-2 block">Data Início</label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !startDate && "text-muted-foreground"
-                    )}
-                  >
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                    {startDate ? format(startDate, "PPP", {
+                    locale: ptBR
+                  }) : "Selecione a data"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
+                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus className={cn("p-3 pointer-events-auto")} />
                 </PopoverContent>
               </Popover>
             </div>
@@ -245,39 +239,25 @@ const AtividadesMarketing = () => {
               <label className="text-sm text-muted-foreground mb-2 block">Data Fim</label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !endDate && "text-muted-foreground"
-                    )}
-                  >
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                    {endDate ? format(endDate, "PPP", {
+                    locale: ptBR
+                  }) : "Selecione a data"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
+                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus className={cn("p-3 pointer-events-auto")} />
                 </PopoverContent>
               </Popover>
             </div>
           </div>
-          {(startDate || endDate) && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => { setStartDate(undefined); setEndDate(undefined); }}
-              className="mt-4"
-            >
+          {(startDate || endDate) && <Button variant="outline" size="sm" onClick={() => {
+          setStartDate(undefined);
+          setEndDate(undefined);
+        }} className="mt-4">
               Limpar Filtros
-            </Button>
-          )}
+            </Button>}
         </Card>
 
         {/* Equipment Cards */}
@@ -316,15 +296,10 @@ const AtividadesMarketing = () => {
               <Bar yAxisId="left" dataKey="total" fill="#660099" name="Total" radius={[8, 8, 0, 0]}>
                 <LabelList dataKey="total" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
               </Bar>
-              <Line 
-                yAxisId="left" 
-                type="monotone" 
-                dataKey="canceled" 
-                stroke="#F59E0B" 
-                strokeWidth={2} 
-                name="Canceladas"
-                dot={{ fill: '#F59E0B', r: 4 }}
-              />
+              <Line yAxisId="left" type="monotone" dataKey="canceled" stroke="#F59E0B" strokeWidth={2} name="Canceladas" dot={{
+                fill: '#F59E0B',
+                r: 4
+              }} />
               </ComposedChart>
             </ResponsiveContainer>
           </Card>
