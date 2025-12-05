@@ -28,10 +28,10 @@ const TasksFrontOffice = () => {
 
   // Calcular totais automáticos baseados nos dados
   // Tasks = TAREFA (TASK) = 1
-  // Work Orders = TAREFA (TASK) !== 1 AND Execução Plataforma BR = 1
+  // Work Orders = Execução - GLOBAL = 1 (excluindo Tasks)
   const automaticCounts = useMemo(() => {
     const tasks = baseData.filter(a => a['TAREFA (TASK)'] === 1);
-    const workOrders = baseData.filter(a => a['TAREFA (TASK)'] !== 1 && a['Execução Plataforma BR'] === 1);
+    const workOrders = baseData.filter(a => a['Execução - GLOBAL'] === 1 && a['TAREFA (TASK)'] !== 1);
     const total = tasks.length + workOrders.length;
     
     return {
@@ -47,8 +47,8 @@ const TasksFrontOffice = () => {
     let activities = filterType === "tasks" 
       ? baseData.filter(a => a['TAREFA (TASK)'] === 1)
       : filterType === "workorders" 
-        ? baseData.filter(a => a['TAREFA (TASK)'] !== 1 && a['Execução Plataforma BR'] === 1)
-        : baseData.filter(a => a['TAREFA (TASK)'] === 1 || (a['TAREFA (TASK)'] !== 1 && a['Execução Plataforma BR'] === 1));
+        ? baseData.filter(a => a['Execução - GLOBAL'] === 1 && a['TAREFA (TASK)'] !== 1)
+        : baseData.filter(a => a['TAREFA (TASK)'] === 1 || (a['Execução - GLOBAL'] === 1 && a['TAREFA (TASK)'] !== 1));
 
     if (!startDate && !endDate) return activities;
 
