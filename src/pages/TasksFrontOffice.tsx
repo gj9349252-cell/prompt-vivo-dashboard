@@ -76,7 +76,7 @@ const TasksFrontOffice = () => {
     // Para TASKs, manter comportamento atual
     return {
       total: filterType === "workorders" 
-        ? 435  // Fixar em 435 conforme solicitado
+        ? 440  // Fixar em 440 conforme solicitado
         : filteredActivities.length,
       success: filteredActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length,
       partial: filteredActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length,
@@ -254,7 +254,7 @@ const TasksFrontOffice = () => {
                 TASKs (443)
               </TabsTrigger>
               <TabsTrigger value="workorders">
-                Work Orders (435)
+                Work Orders (440)
               </TabsTrigger>
             </TabsList>
           </Tabs>
