@@ -21,12 +21,27 @@ const TasksFrontOffice = () => {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
 
+  // Calcular totais automáticos baseados nos dados filtrados por data
+  const automaticCounts = useMemo(() => {
+    const tasks = data.filter(a => a['TAREFA (TASK)'] === 1);
+    const workOrders = data.filter(a => a['TAREFA (TASK)'] !== 1);
+    const total = data.length;
+    
+    return {
+      total,
+      tasks: tasks.length,
+      workOrders: workOrders.length
+    };
+  }, [data]);
+
   // Filtrar atividades baseado na seleção e datas
   const filteredActivities = useMemo(() => {
-    // Para "Todos" (all), usar TODAS as atividades globais
-    let activities = filterType === "tasks" ? tasksStats.tasks : 
-                     filterType === "workorders" ? tasksStats.workOrders : 
-                     data; // Dados globais para aba "Todos"
+    // Filtrar por tipo
+    let activities = filterType === "tasks" 
+      ? data.filter(a => a['TAREFA (TASK)'] === 1)
+      : filterType === "workorders" 
+        ? data.filter(a => a['TAREFA (TASK)'] !== 1)
+        : data;
 
     if (!startDate && !endDate) return activities;
 
@@ -45,7 +60,6 @@ const TasksFrontOffice = () => {
       const normalizedEndDate = endDate ? new Date(endDate) : null;
       if (normalizedEndDate) normalizedEndDate.setHours(0, 0, 0, 0);
 
-      // Exact date match if both dates are equal
       if (normalizedStartDate && normalizedEndDate && 
           normalizedStartDate.getTime() === normalizedEndDate.getTime()) {
         return activityFullDate.getTime() === normalizedStartDate.getTime();
@@ -55,99 +69,77 @@ const TasksFrontOffice = () => {
       if (normalizedEndDate && activityFullDate > normalizedEndDate) return false;
       return true;
     });
-  }, [filterType, tasksStats, data, startDate, endDate]);
+  }, [filterType, data, startDate, endDate]);
 
-  // Calcular KPIs baseados no filtro ativo
+  // Calcular KPIs baseados no filtro ativo - agora automático
   const filteredKPIs = useMemo(() => {
-    // Para aba "Todos", usar valores globais fixos
-    if (filterType === "all") {
-      return {
-        total: 878,
-        success: 755,
-        partial: 12,
-        canceled: 78,
-        woExecuted: filteredActivities.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length
-      };
-    }
-    
     const woSemTP = filteredActivities.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length;
+    const baseActivities = filterType === "workorders" 
+      ? filteredActivities.filter(a => a.STATUS !== 'WO EXECUTADA SEM TP')
+      : filteredActivities;
     
-    // Para Work Orders, excluir WO sem TP do total
-    // Para TASKs, manter comportamento atual
     return {
-      total: filterType === "workorders" 
-        ? 440  // Fixar em 440 conforme solicitado
-        : filteredActivities.length,
-      success: filteredActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length,
-      partial: filteredActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length,
-      canceled: filteredActivities.filter(a => a.STATUS === 'CANCELADA').length,
+      total: baseActivities.length,
+      success: baseActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length,
+      partial: baseActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length,
+      canceled: baseActivities.filter(a => a.STATUS === 'CANCELADA').length,
       woExecuted: woSemTP
     };
   }, [filteredActivities, filterType]);
 
-  // Calcular dados mensais baseados no filtro ativo
+  // Calcular dados mensais baseados no filtro ativo - agora automático
   const filteredMonthlyData = useMemo(() => {
-    // Para aba "Todos", usar dados fixos especificados pelo usuário
-    if (filterType === "all") {
-      return [
-        { month: 'Janeiro', success: 72, partial: 1, rollback: 0, canceled: 8, canceledPercent: 10, notExecuted: 0, totalExecuted: 73 },
-        { month: 'Fevereiro', success: 65, partial: 2, rollback: 0, canceled: 12, canceledPercent: 14, notExecuted: 5, totalExecuted: 67 },
-        { month: 'Março', success: 96, partial: 6, rollback: 0, canceled: 10, canceledPercent: 9, notExecuted: 4, totalExecuted: 102 },
-        { month: 'Abril', success: 41, partial: 1, rollback: 0, canceled: 13, canceledPercent: 23, notExecuted: 2, totalExecuted: 42 },
-        { month: 'Maio', success: 78, partial: 0, rollback: 0, canceled: 4, canceledPercent: 5, notExecuted: 4, totalExecuted: 78 },
-        { month: 'Junho', success: 71, partial: 1, rollback: 0, canceled: 2, canceledPercent: 3, notExecuted: 2, totalExecuted: 72 },
-        { month: 'Julho', success: 63, partial: 1, rollback: 0, canceled: 4, canceledPercent: 5, notExecuted: 8, totalExecuted: 64 },
-        { month: 'Agosto', success: 26, partial: 0, rollback: 0, canceled: 4, canceledPercent: 13, notExecuted: 2, totalExecuted: 26 },
-        { month: 'Setembro', success: 87, partial: 0, rollback: 0, canceled: 11, canceledPercent: 11, notExecuted: 0, totalExecuted: 87 },
-        { month: 'Outubro', success: 71, partial: 0, rollback: 0, canceled: 10, canceledPercent: 12, notExecuted: 2, totalExecuted: 71 },
-        { month: 'Novembro', success: 85, partial: 0, rollback: 0, canceled: 0, canceledPercent: 0, notExecuted: 0, totalExecuted: 85 },
-        { month: 'Dezembro', success: 0, partial: 0, rollback: 0, canceled: 0, canceledPercent: 0, notExecuted: 0, totalExecuted: 0 },
-      ];
-    }
-    
-    // Para TASKs e Work Orders, calcular dinamicamente
     const monthMap: Record<string, {
       success: number;
       partial: number;
+      rollback: number;
       canceled: number;
+      notExecuted: number;
       total: number;
     }> = {};
+    
+    // Inicializar todos os meses
+    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    monthNames.forEach((_, idx) => {
+      const key = `2025-${String(idx + 1).padStart(2, '0')}`;
+      monthMap[key] = { success: 0, partial: 0, rollback: 0, canceled: 0, notExecuted: 0, total: 0 };
+    });
     
     filteredActivities.forEach(activity => {
       const month = String(activity['MÊS']);
       const year = String(activity['ANO']);
       const key = `${year}-${month.padStart(2, '0')}`;
       
-      if (!monthMap[key]) {
-        monthMap[key] = {
-          success: 0,
-          partial: 0,
-          canceled: 0,
-          total: 0
-        };
-      }
+      if (!monthMap[key]) return;
       
       const status = activity.STATUS;
       
       // Para Work Orders, excluir WO EXECUTADA SEM TP do total
       if (filterType === "workorders" && status === 'WO EXECUTADA SEM TP') {
-        return; // Não contar esta atividade
+        return;
       }
       
       monthMap[key].total++;
       if (status === 'REALIZADA COM SUCESSO') monthMap[key].success++;
       else if (status === 'REALIZADA PARCIALMENTE') monthMap[key].partial++;
+      else if (status === 'REALIZADO ROLLBACK') monthMap[key].rollback++;
       else if (status === 'CANCELADA') monthMap[key].canceled++;
+      else if (status === 'NÃO EXECUTADO') monthMap[key].notExecuted++;
     });
     
     return Object.entries(monthMap).sort(([a], [b]) => a.localeCompare(b)).map(([key, stats]) => {
-      const [year, month] = key.split('-');
-      const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      const [, month] = key.split('-');
+      const totalWithCanceled = stats.total + stats.canceled;
+      const canceledPercent = totalWithCanceled > 0 ? Math.round((stats.canceled / totalWithCanceled) * 100) : 0;
       return {
         month: monthNames[parseInt(month) - 1],
         success: stats.success,
         partial: stats.partial,
+        rollback: stats.rollback,
         canceled: stats.canceled,
+        canceledPercent,
+        notExecuted: stats.notExecuted,
+        totalExecuted: stats.success + stats.partial + stats.rollback,
         total: stats.total
       };
     });
@@ -248,13 +240,13 @@ const TasksFrontOffice = () => {
           <Tabs value={filterType} onValueChange={value => setFilterType(value as "all" | "tasks" | "workorders")}>
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="all">
-                Todos (878)
+                Todos ({automaticCounts.total})
               </TabsTrigger>
               <TabsTrigger value="tasks">
-                TASKs (443)
+                TASKs ({automaticCounts.tasks})
               </TabsTrigger>
               <TabsTrigger value="workorders">
-                Work Orders (440)
+                Work Orders ({automaticCounts.workOrders})
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -335,7 +327,7 @@ const TasksFrontOffice = () => {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-primary text-center">
-                76.2%
+                {((automaticCounts.total / 1212) * 100).toFixed(1)}%
               </div>
             </CardContent>
           </Card>
