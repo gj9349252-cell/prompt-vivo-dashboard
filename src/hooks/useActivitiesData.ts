@@ -98,7 +98,33 @@ const isNaoRealizada = (activity: Activity): boolean => {
 export const useActivitiesData = () => {
   const data = useMemo(() => {
     const rawData = activitiesData as Activity[];
-    return rawData.map(activity => ({
+    
+    // Obter a data atual do sistema
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentMonth = today.getMonth() + 1; // JavaScript meses começam em 0
+    const currentYear = today.getFullYear();
+    
+    // Filtrar apenas atividades até a data atual (excluir datas futuras)
+    const filteredByDate = rawData.filter(activity => {
+      const activityYear = activity['ANO'];
+      const activityMonth = activity['MÊS'];
+      const activityDay = activity['DIA'];
+      
+      // Se o ano é anterior ao atual, inclui
+      if (activityYear < currentYear) return true;
+      // Se o ano é posterior, exclui
+      if (activityYear > currentYear) return false;
+      
+      // Mesmo ano - verificar mês
+      if (activityMonth < currentMonth) return true;
+      if (activityMonth > currentMonth) return false;
+      
+      // Mesmo mês - verificar dia
+      return activityDay <= currentDay;
+    });
+    
+    return filteredByDate.map(activity => ({
       ...activity,
       'DATA/HORA INÍCIO': formatBrazilianDate(activity['DATA/HORA INÍCIO']),
       'DATA/HORA \nFIM': formatBrazilianDate(activity['DATA/HORA \nFIM'])
