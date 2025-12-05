@@ -18,6 +18,8 @@ const AtividadesEngenharia = () => {
   const { engineeringActivities, totalActivities } = useActivitiesData();
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
 
   const filteredActivities = useMemo(() => {
     if (!startDate || !endDate) return engineeringActivities;
@@ -377,10 +379,13 @@ const AtividadesEngenharia = () => {
           </Card>
         )}
 
-        {/* Activities Table */}
+        {/* Activities Table with Pagination */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Detalhes das Atividades</CardTitle>
+            <div className="text-sm text-muted-foreground">
+              Exibindo {Math.min((currentPage - 1) * itemsPerPage + 1, filteredActivities.length)} - {Math.min(currentPage * itemsPerPage, filteredActivities.length)} de {filteredActivities.length} atividades
+            </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -395,33 +400,84 @@ const AtividadesEngenharia = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredActivities.slice(0, 50).map((activity, index) => {
-                    const status = activity.STATUS?.toUpperCase() || '';
-                    const getStatusColor = () => {
-                      if (status.includes('SUCESSO')) return 'bg-green-100 text-green-700';
-                      if (status.includes('CANCELAD')) return 'bg-red-100 text-red-700';
-                      if (status.includes('PARCIAL') || status.includes('ROLLBACK') || status.includes('NÃO EXECUTAD')) 
-                        return 'bg-yellow-100 text-yellow-700';
-                      return 'bg-gray-100 text-gray-700';
-                    };
+                  {filteredActivities
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((activity, index) => {
+                      const status = activity.STATUS?.toUpperCase() || '';
+                      const getStatusColor = () => {
+                        if (status.includes('SUCESSO')) return 'bg-green-100 text-green-700';
+                        if (status.includes('CANCELAD')) return 'bg-red-100 text-red-700';
+                        if (status.includes('PARCIAL') || status.includes('ROLLBACK') || status.includes('NÃO EXECUTAD')) 
+                          return 'bg-yellow-100 text-yellow-700';
+                        return 'bg-gray-100 text-gray-700';
+                      };
 
-                    return (
-                      <tr key={index} className="border-b hover:bg-gray-50">
-                        <td className="py-2 px-4">{activity['DATA/HORA INÍCIO']}</td>
-                        <td className="py-2 px-4">{activity['Executor da Atividade']}</td>
-                        <td className="py-2 px-4 max-w-md truncate">{activity.EVENTO}</td>
-                        <td className="py-2 px-4">{activity.SEVERIDADE}</td>
-                        <td className="py-2 px-4">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor()}`}>
-                            {activity.STATUS}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                      return (
+                        <tr key={index} className="border-b hover:bg-gray-50">
+                          <td className="py-2 px-4">{activity['DATA/HORA INÍCIO']}</td>
+                          <td className="py-2 px-4">{activity['Executor da Atividade']}</td>
+                          <td className="py-2 px-4 max-w-md truncate">{activity.EVENTO}</td>
+                          <td className="py-2 px-4">{activity.SEVERIDADE}</td>
+                          <td className="py-2 px-4">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor()}`}>
+                              {activity.STATUS}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {filteredActivities.length > itemsPerPage && (
+              <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Anterior
+                </Button>
+                
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: Math.ceil(filteredActivities.length / itemsPerPage) }, (_, i) => i + 1)
+                    .filter(page => {
+                      const totalPages = Math.ceil(filteredActivities.length / itemsPerPage);
+                      if (totalPages <= 7) return true;
+                      if (page === 1 || page === totalPages) return true;
+                      if (Math.abs(page - currentPage) <= 1) return true;
+                      return false;
+                    })
+                    .map((page, index, array) => (
+                      <span key={page}>
+                        {index > 0 && array[index - 1] !== page - 1 && (
+                          <span className="px-2 text-muted-foreground">...</span>
+                        )}
+                        <Button
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(page)}
+                          className="min-w-[40px]"
+                        >
+                          {page}
+                        </Button>
+                      </span>
+                    ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredActivities.length / itemsPerPage), prev + 1))}
+                  disabled={currentPage === Math.ceil(filteredActivities.length / itemsPerPage)}
+                >
+                  Próxima
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>
