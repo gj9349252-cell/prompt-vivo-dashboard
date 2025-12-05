@@ -21,27 +21,34 @@ const TasksFrontOffice = () => {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
 
-  // Calcular totais automáticos baseados nos dados filtrados por data
+  // Filtrar dados base para esta página (apenas consolidado = 1)
+  const baseData = useMemo(() => {
+    return data.filter(a => a['Consolidado'] === 1);
+  }, [data]);
+
+  // Calcular totais automáticos baseados nos dados
+  // Tasks = TAREFA (TASK) = 1
+  // Work Orders = TAREFA (TASK) !== 1 AND Execução Plataforma BR = 1
   const automaticCounts = useMemo(() => {
-    const tasks = data.filter(a => a['TAREFA (TASK)'] === 1);
-    const workOrders = data.filter(a => a['TAREFA (TASK)'] !== 1);
-    const total = data.length;
+    const tasks = baseData.filter(a => a['TAREFA (TASK)'] === 1);
+    const workOrders = baseData.filter(a => a['TAREFA (TASK)'] !== 1 && a['Execução Plataforma BR'] === 1);
+    const total = tasks.length + workOrders.length;
     
     return {
       total,
       tasks: tasks.length,
       workOrders: workOrders.length
     };
-  }, [data]);
+  }, [baseData]);
 
   // Filtrar atividades baseado na seleção e datas
   const filteredActivities = useMemo(() => {
     // Filtrar por tipo
     let activities = filterType === "tasks" 
-      ? data.filter(a => a['TAREFA (TASK)'] === 1)
+      ? baseData.filter(a => a['TAREFA (TASK)'] === 1)
       : filterType === "workorders" 
-        ? data.filter(a => a['TAREFA (TASK)'] !== 1)
-        : data;
+        ? baseData.filter(a => a['TAREFA (TASK)'] !== 1 && a['Execução Plataforma BR'] === 1)
+        : baseData.filter(a => a['TAREFA (TASK)'] === 1 || (a['TAREFA (TASK)'] !== 1 && a['Execução Plataforma BR'] === 1));
 
     if (!startDate && !endDate) return activities;
 
