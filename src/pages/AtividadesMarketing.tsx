@@ -158,15 +158,15 @@ const AtividadesMarketing = () => {
       } else if (activity.STATUS === 'REALIZADO ROLLBACK') monthlyData[monthName].rollback++;else if (activity.STATUS === 'CANCELADA') monthlyData[monthName].canceled++;else if (activity.STATUS === 'NÃO EXECUTADO') monthlyData[monthName].notExecuted++;
 
       // Count by equipment type (check individual fields)
-      if (activity['Demanda - MKT Conteúdos'] === 1 || activity['Área Solicitante'] === 'MKT CONTEÚDOS') {
-        equipmentCounts['MKT Conteúdos']++;
-      }
       if (activity['Freeview'] === 1) equipmentCounts['Freeview']++;
       if (activity['Evento Temporal'] === 1) equipmentCounts['Evento Temporal']++;
       if (activity['Novos Canais'] === 1) equipmentCounts['Novos Canais']++;
       if (activity['Novas Cidades'] === 1) equipmentCounts['Novas Cidades']++;
       if (activity['Outras Configurações'] === 1) equipmentCounts['Outras Configurações']++;
     });
+    
+    // MKT Conteúdos should be the total filtered activities count
+    equipmentCounts['MKT Conteúdos'] = filteredActivities.length;
     const totalActivities = filteredActivities.length;
     // Usar 1186 como base total conforme especificação (MKT = 189 atividades = 15.9%)
     const participacao = 15.9;
