@@ -119,11 +119,8 @@ export const useActivitiesData = () => {
     const currentYear = today.getFullYear();
     
     // Filtrar apenas atividades até a data atual (excluir datas futuras)
-    // Usa campo 'Agenda Futura' === 0 E verificação de data
+    // Usa apenas verificação de data real (DIA, MÊS, ANO)
     const filteredByDate = rawData.filter(activity => {
-      // Primeiro, excluir atividades marcadas como Agenda Futura
-      if (activity['Agenda Futura'] === 1) return false;
-      
       const activityYear = activity['ANO'];
       const activityMonth = activity['MÊS'];
       const activityDay = activity['DIA'];
