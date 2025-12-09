@@ -5,8 +5,10 @@ import { ptBR } from 'date-fns/locale';
 
 export interface Activity {
   'DATA/HORA INÍCIO': string | number;
-  'DATA/HORA \nFIM': string | number;
-  'TP \nSIGITM': number;
+  'DATA/HORA \nFIM'?: string | number;
+  'DATA/HORA \r\nFIM'?: string | number;
+  'TP \nSIGITM'?: number;
+  'TP \r\nSIGITM'?: number;
   'UDO ID': string | number;
   'STATUS': string;
   'EVENTO': string;
@@ -15,7 +17,7 @@ export interface Activity {
   'Executor da Atividade': string;
   'Área Solicitante': string;
   'Observações'?: string;
-  'ID DE BUSCA': string;
+  'ID DE BUSCA'?: string;
   'SEMANA': number;
   'Freeview': number;
   'Evento Temporal': number;
@@ -55,6 +57,16 @@ export interface Activity {
   'Horário Comercial'?: number;
   'Agenda Futura'?: number;
 }
+
+// Helper to get TP SIGITM from either field format
+const getTPSigitm = (activity: Activity): number => {
+  return activity['TP \nSIGITM'] ?? activity['TP \r\nSIGITM'] ?? 0;
+};
+
+// Helper to get DATA/HORA FIM from either field format
+const getDataHoraFim = (activity: Activity): string | number => {
+  return activity['DATA/HORA \nFIM'] ?? activity['DATA/HORA \r\nFIM'] ?? '';
+};
 
 const formatBrazilianDate = (dateValue: string | number): string => {
   try {
@@ -132,7 +144,8 @@ export const useActivitiesData = () => {
     return filteredByDate.map(activity => ({
       ...activity,
       'DATA/HORA INÍCIO': formatBrazilianDate(activity['DATA/HORA INÍCIO']),
-      'DATA/HORA \nFIM': formatBrazilianDate(activity['DATA/HORA \nFIM'])
+      'DATA/HORA \nFIM': formatBrazilianDate(getDataHoraFim(activity)),
+      'DATA/HORA \r\nFIM': formatBrazilianDate(getDataHoraFim(activity))
     }));
   }, []);
 
