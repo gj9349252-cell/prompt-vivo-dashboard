@@ -11,7 +11,10 @@ const ConsolidadoAnual = () => {
 
   const annualData = annualStats.monthlyData;
   const totalActivities = annualStats.totalActivities;
-  const averageSuccessRate = annualStats.avgSuccessRate.toFixed(1);
+  const monthsWithData = annualData.filter(m => m.total > 0);
+  const averageCancelRate = monthsWithData.length > 0 
+    ? (monthsWithData.reduce((sum, m) => sum + (m.canceled / m.total * 100), 0) / monthsWithData.length).toFixed(1)
+    : "0.0";
   const bestMonth = annualStats.bestMonth;
   const worstMonth = annualStats.worstMonth;
 
@@ -52,12 +55,12 @@ const ConsolidadoAnual = () => {
 
           <Card className="p-6 shadow-card">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
-                <Activity className="w-6 h-6 text-accent" />
+              <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
+                <Activity className="w-6 h-6 text-orange-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Taxa Média</p>
-                <p className="text-3xl font-bold text-accent">{averageSuccessRate}%</p>
+                <p className="text-sm text-muted-foreground">Taxa Média Cancelamento</p>
+                <p className="text-3xl font-bold text-orange-500">{averageCancelRate}%</p>
               </div>
             </div>
           </Card>
