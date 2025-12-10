@@ -13,6 +13,7 @@ const ConsolidadoAnual = () => {
   const totalActivities = 1219;
   const monthsWithData = annualData.filter(m => m.total > 0);
   const averageCancelRate = monthsWithData.length > 0 ? (monthsWithData.reduce((sum, m) => sum + m.canceled / m.total * 100, 0) / monthsWithData.length).toFixed(1) : "0.0";
+  const averageSuccessRate = (100 - parseFloat(averageCancelRate)).toFixed(1);
   const bestMonth = annualStats.bestMonth;
   const worstMonth = annualStats.worstMonth;
   return <div className="min-h-screen bg-background">
@@ -31,7 +32,7 @@ const ConsolidadoAnual = () => {
 
       <main className="container mx-auto px-6 py-8">
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="p-6 shadow-card">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -47,7 +48,7 @@ const ConsolidadoAnual = () => {
           <Card className="p-6 shadow-card">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-                <Activity className="w-6 h-6 text-orange-500" />
+                <TrendingDown className="w-6 h-6 text-orange-500" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Taxa Média Cancelamento</p>
@@ -56,9 +57,17 @@ const ConsolidadoAnual = () => {
             </div>
           </Card>
 
-          
-
-          
+          <Card className="p-6 shadow-card">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Média de Sucesso</p>
+                <p className="text-3xl font-bold text-green-500">{averageSuccessRate}%</p>
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* Main Chart - Activities Volume */}
