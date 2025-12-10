@@ -286,8 +286,7 @@ export const useActivitiesData = () => {
         };
       });
 
-    // Usar data.length para incluir TODAS as atividades (incluindo WO sem TP) no total
-    const totalActivities = data.length;
+    const totalActivities = filteredData.length;
     const successfulActivities = filteredData.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length;
     const avgSuccessRate = totalActivities > 0 ? (successfulActivities / totalActivities) * 100 : 0;
 
