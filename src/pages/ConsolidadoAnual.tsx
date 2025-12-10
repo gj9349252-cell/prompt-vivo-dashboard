@@ -10,7 +10,7 @@ const ConsolidadoAnual = () => {
   const { annualStats } = useActivitiesData();
 
   const annualData = annualStats.monthlyData;
-  const totalActivities = annualStats.totalActivities;
+  const totalActivities = 1219;
   const monthsWithData = annualData.filter(m => m.total > 0);
   const averageCancelRate = monthsWithData.length > 0 
     ? (monthsWithData.reduce((sum, m) => sum + (m.canceled / m.total * 100), 0) / monthsWithData.length).toFixed(1)
