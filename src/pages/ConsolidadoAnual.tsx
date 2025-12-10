@@ -4,31 +4,22 @@ import { ArrowLeft, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LineChart, Line, ComposedChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
-
 const ConsolidadoAnual = () => {
   const navigate = useNavigate();
-  const { annualStats } = useActivitiesData();
-
+  const {
+    annualStats
+  } = useActivitiesData();
   const annualData = annualStats.monthlyData;
   const totalActivities = 1219;
   const monthsWithData = annualData.filter(m => m.total > 0);
-  const averageCancelRate = monthsWithData.length > 0 
-    ? (monthsWithData.reduce((sum, m) => sum + (m.canceled / m.total * 100), 0) / monthsWithData.length).toFixed(1)
-    : "0.0";
+  const averageCancelRate = monthsWithData.length > 0 ? (monthsWithData.reduce((sum, m) => sum + m.canceled / m.total * 100, 0) / monthsWithData.length).toFixed(1) : "0.0";
   const bestMonth = annualStats.bestMonth;
   const worstMonth = annualStats.worstMonth;
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="gradient-header text-white py-6 px-6 shadow-elevated">
         <div className="container mx-auto flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/")}
-            className="text-white hover:bg-white/20"
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="text-white hover:bg-white/20">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
@@ -65,31 +56,9 @@ const ConsolidadoAnual = () => {
             </div>
           </Card>
 
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Melhor Mês</p>
-                <p className="text-xl font-bold text-green-600">{bestMonth.month}</p>
-                <p className="text-xs text-muted-foreground">{bestMonth.successRate.toFixed(1)}%</p>
-              </div>
-            </div>
-          </Card>
+          
 
-          <Card className="p-6 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                <TrendingDown className="w-6 h-6 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Menor Taxa</p>
-                <p className="text-xl font-bold text-red-600">{worstMonth.month}</p>
-                <p className="text-xs text-muted-foreground">{worstMonth.successRate.toFixed(1)}%</p>
-              </div>
-            </div>
-          </Card>
+          
         </div>
 
         {/* Main Chart - Activities Volume */}
@@ -101,37 +70,19 @@ const ConsolidadoAnual = () => {
             <ComposedChart data={annualData} barGap={0} barCategoryGap={20}>
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
               <YAxis hide={true} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px"
-                }}
-              />
+              <Tooltip contentStyle={{
+              backgroundColor: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: "8px"
+            }} />
               <Legend />
-              <Bar 
-                dataKey="total" 
-                fill="#660099" 
-                name="Total de Atividades" 
-                radius={[8, 8, 0, 0]}
-              >
-                <LabelList 
-                  dataKey="total" 
-                  position="center" 
-                  fill="white" 
-                  fontSize={12} 
-                  fontWeight="bold" 
-                  formatter={(value: number) => value > 0 ? value : ''} 
-                />
+              <Bar dataKey="total" fill="#660099" name="Total de Atividades" radius={[8, 8, 0, 0]}>
+                <LabelList dataKey="total" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
               </Bar>
-              <Line 
-                type="monotone" 
-                dataKey="canceled" 
-                stroke="#F59E0B" 
-                strokeWidth={2} 
-                name="Canceladas"
-                dot={{ fill: '#F59E0B', r: 4 }}
-              />
+              <Line type="monotone" dataKey="canceled" stroke="#F59E0B" strokeWidth={2} name="Canceladas" dot={{
+              fill: '#F59E0B',
+              r: 4
+            }} />
             </ComposedChart>
           </ResponsiveContainer>
         </Card>
@@ -145,37 +96,27 @@ const ConsolidadoAnual = () => {
             <LineChart data={annualData}>
               <defs>
                 <linearGradient id="colorSuccess" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis 
-                domain={[85, 100]} 
-                hide={true}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px"
-                }}
-                formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Sucesso']}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="successRate" 
-                stroke="#660099" 
-                strokeWidth={3}
-                dot={{ r: 5, fill: "#660099" }}
-                activeDot={{ r: 7 }}
-              />
+              <YAxis domain={[85, 100]} hide={true} />
+              <Tooltip contentStyle={{
+              backgroundColor: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: "8px"
+            }} formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Sucesso']} />
+              <Line type="monotone" dataKey="successRate" stroke="#660099" strokeWidth={3} dot={{
+              r: 5,
+              fill: "#660099"
+            }} activeDot={{
+              r: 7
+            }} />
             </LineChart>
           </ResponsiveContainer>
         </Card>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default ConsolidadoAnual;
