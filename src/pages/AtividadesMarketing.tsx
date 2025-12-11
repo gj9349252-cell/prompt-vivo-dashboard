@@ -1,4 +1,4 @@
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Filter, CalendarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -316,88 +316,104 @@ const AtividadesMarketing = () => {
         </div>
 
         {/* Detalhes das Atividades */}
-        <Card className="p-6 shadow-card mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-purple-800">
-              Detalhes das Atividades
-            </h2>
-            <span className="text-sm text-muted-foreground">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Detalhes das Atividades</CardTitle>
+            <div className="text-sm text-muted-foreground">
               Exibindo {Math.min((currentPage - 1) * itemsPerPage + 1, filteredActivities.length)} - {Math.min(currentPage * itemsPerPage, filteredActivities.length)} de {filteredActivities.length} atividades
-            </span>
-          </div>
-          <ScrollArea className="w-full">
-            <Table>
-              <TableHeader>
-                <TableRow className="gradient-header border-none hover:bg-transparent">
-                  <TableHead className="text-white font-semibold h-10">Data Início</TableHead>
-                  <TableHead className="text-white font-semibold h-10">Executor</TableHead>
-                  <TableHead className="text-white font-semibold h-10">Evento</TableHead>
-                  <TableHead className="text-white font-semibold h-10">Severidade</TableHead>
-                  <TableHead className="text-white text-center font-semibold h-10">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredActivities
-                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                  .map((activity, index) => {
-                    const status = activity['STATUS'] || '';
-                    const getStatusStyle = () => {
-                      if (status === 'REALIZADA COM SUCESSO') return 'bg-green-100 text-green-700';
-                      if (status === 'CANCELADA') return 'bg-red-100 text-red-700';
-                      if (status === 'REALIZADA PARCIALMENTE' || status === 'REALIZADO ROLLBACK' || status === 'NÃO EXECUTADO') return 'bg-yellow-100 text-yellow-700';
-                      return 'bg-gray-100 text-gray-700';
-                    };
-                    return (
-                      <TableRow key={index} className="hover:bg-purple-50/50 transition-colors border-border/30">
-                        <TableCell className="py-2">{activity['DATA/HORA INÍCIO']}</TableCell>
-                        <TableCell className="py-2">{activity['EXECUTOR'] || '-'}</TableCell>
-                        <TableCell className="py-2 max-w-[300px] truncate">{activity['EVENTO'] || '-'}</TableCell>
-                        <TableCell className="py-2">{activity['SEVERIDADE'] || '-'}</TableCell>
-                        <TableCell className="py-2 text-center">
-                          <span className={cn("px-2 py-1 rounded text-xs font-medium", getStatusStyle())}>
-                            {status === 'REALIZADA COM SUCESSO' ? '✓' : status === 'CANCELADA' ? '✕' : status.substring(0, 10)}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-              </TableBody>
-            </Table>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
-          
-          {/* Pagination Controls */}
-          {filteredActivities.length > itemsPerPage && (
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
-                Anterior
-              </Button>
-              {Array.from({ length: Math.ceil(filteredActivities.length / itemsPerPage) }, (_, i) => i + 1).map(page => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setCurrentPage(page)}
-                  className={currentPage === page ? "bg-primary" : ""}
-                >
-                  {page}
-                </Button>
-              ))}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredActivities.length / itemsPerPage), p + 1))}
-                disabled={currentPage === Math.ceil(filteredActivities.length / itemsPerPage)}
-              >
-                Próximo
-              </Button>
             </div>
-          )}
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 px-4">Data Início</th>
+                    <th className="text-left py-2 px-4">Executor</th>
+                    <th className="text-left py-2 px-4">Evento</th>
+                    <th className="text-left py-2 px-4">Severidade</th>
+                    <th className="text-left py-2 px-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredActivities
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((activity, index) => {
+                      const status = activity.STATUS?.toUpperCase() || '';
+                      const getStatusColor = () => {
+                        if (status.includes('SUCESSO')) return 'bg-green-100 text-green-700';
+                        if (status.includes('CANCELAD')) return 'bg-red-100 text-red-700';
+                        if (status.includes('PARCIAL') || status.includes('ROLLBACK') || status.includes('NÃO EXECUTAD')) 
+                          return 'bg-yellow-100 text-yellow-700';
+                        return 'bg-gray-100 text-gray-700';
+                      };
+
+                      return (
+                        <tr key={index} className="border-b hover:bg-gray-50">
+                          <td className="py-2 px-4">{activity['DATA/HORA INÍCIO']}</td>
+                          <td className="py-2 px-4">{activity['Executor da Atividade'] || activity['EXECUTOR'] || '-'}</td>
+                          <td className="py-2 px-4 max-w-md truncate">{activity.EVENTO}</td>
+                          <td className="py-2 px-4">{activity.SEVERIDADE}</td>
+                          <td className="py-2 px-4">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor()}`}>
+                              {activity.STATUS}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            {filteredActivities.length > itemsPerPage && (
+              <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Anterior
+                </Button>
+                
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: Math.ceil(filteredActivities.length / itemsPerPage) }, (_, i) => i + 1)
+                    .filter(page => {
+                      const totalPages = Math.ceil(filteredActivities.length / itemsPerPage);
+                      if (totalPages <= 7) return true;
+                      if (page === 1 || page === totalPages) return true;
+                      if (Math.abs(page - currentPage) <= 1) return true;
+                      return false;
+                    })
+                    .map((page, index, array) => (
+                      <span key={page}>
+                        {index > 0 && array[index - 1] !== page - 1 && (
+                          <span className="px-2 text-muted-foreground">...</span>
+                        )}
+                        <Button
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </Button>
+                      </span>
+                    ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredActivities.length / itemsPerPage), prev + 1))}
+                  disabled={currentPage === Math.ceil(filteredActivities.length / itemsPerPage)}
+                >
+                  Próximo
+                </Button>
+              </div>
+            )}
+          </CardContent>
         </Card>
 
         {/* Partial Activities Section */}
