@@ -120,10 +120,13 @@ export const useActivitiesData = () => {
     
     // Filtrar apenas atividades até a data atual (excluir datas futuras)
     // Usa apenas verificação de data real (DIA, MÊS, ANO)
+    // Debug: mostrar data atual do sistema
+    console.log('Data atual do sistema:', { currentDay, currentMonth, currentYear });
+    
     const filteredByDate = rawData.filter(activity => {
-      const activityYear = activity['ANO'];
-      const activityMonth = activity['MÊS'];
-      const activityDay = activity['DIA'];
+      const activityYear = Number(activity['ANO']);
+      const activityMonth = Number(activity['MÊS']);
+      const activityDay = Number(activity['DIA']);
       
       // Se o ano é anterior ao atual, inclui
       if (activityYear < currentYear) return true;
@@ -134,9 +137,14 @@ export const useActivitiesData = () => {
       if (activityMonth < currentMonth) return true;
       if (activityMonth > currentMonth) return false;
       
-      // Mesmo mês - verificar dia
+      // Mesmo mês - verificar dia (incluir atividades do dia atual)
       return activityDay <= currentDay;
     });
+    
+    // Debug: contar atividades de Marketing para verificar
+    const mktActivities = filteredByDate.filter(a => a['Demanda - MKT Conteúdos'] === 1);
+    console.log('Total MKT Conteúdos após filtro de data:', mktActivities.length);
+    console.log('Atividades MKT do dia atual:', mktActivities.filter(a => Number(a['DIA']) === currentDay && Number(a['MÊS']) === currentMonth).length);
     
     return filteredByDate.map(activity => ({
       ...activity,
