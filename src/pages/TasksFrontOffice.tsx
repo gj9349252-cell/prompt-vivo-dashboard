@@ -80,7 +80,6 @@ const TasksFrontOffice = () => {
 
   // Calcular KPIs baseados no filtro ativo - agora automático
   const filteredKPIs = useMemo(() => {
-    const woSemTP = filteredActivities.filter(a => a.STATUS === 'WO EXECUTADA SEM TP').length;
     const baseActivities = filterType === "workorders" 
       ? filteredActivities.filter(a => a.STATUS !== 'WO EXECUTADA SEM TP')
       : filteredActivities;
@@ -90,7 +89,8 @@ const TasksFrontOffice = () => {
       success: baseActivities.filter(a => a.STATUS === 'REALIZADA COM SUCESSO').length,
       partial: baseActivities.filter(a => a.STATUS === 'REALIZADA PARCIALMENTE').length,
       canceled: baseActivities.filter(a => a.STATUS === 'CANCELADA').length,
-      woExecuted: woSemTP
+      notExecuted: baseActivities.filter(a => a.STATUS === 'NÃO EXECUTADO').length,
+      rollback: baseActivities.filter(a => a.STATUS === 'REALIZADO ROLLBACK').length
     };
   }, [filteredActivities, filterType]);
 
@@ -313,28 +313,28 @@ const TasksFrontOffice = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/80 backdrop-blur border-teal-500/20">
+          <Card className="bg-card/80 backdrop-blur border-orange-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground text-center">
-                WO Executada sem TP
+                Não Executada
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-teal-600 text-center">
-                {filteredKPIs.woExecuted}
+              <div className="text-4xl font-bold text-orange-600 text-center">
+                {filteredKPIs.notExecuted}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/80 backdrop-blur border-primary/20">
+          <Card className="bg-card/80 backdrop-blur border-purple-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground text-center">
-                Participação
+                Rollback
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-primary text-center">
-                {((automaticCounts.total / 1212) * 100).toFixed(1)}%
+              <div className="text-4xl font-bold text-purple-600 text-center">
+                {filteredKPIs.rollback}
               </div>
             </CardContent>
           </Card>
