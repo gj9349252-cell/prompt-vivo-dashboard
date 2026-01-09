@@ -1,17 +1,101 @@
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ArrowLeft, Filter, CalendarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useActivitiesData } from "@/hooks/useActivitiesData";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Label, LabelList } from 'recharts';
+import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
+// Live Clock Component
+const LiveClock = () => {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+  return <div className="text-right">
+      <div className="text-sm font-semibold text-white">
+        {format(time, "dd/MM/yy HH:mm", {
+        locale: ptBR
+      })}
+      </div>
+    </div>;
+};
+
+// Equipment Card Component
+const EquipmentCard = ({
+  title,
+  count
+}: {
+  title: string;
+  count: number | string;
+}) => {
+  return <Card className="p-4 bg-white border-primary/20 shadow-sm hover:shadow-md transition-shadow">
+      <div className="text-center">
+        <p className="text-xs font-medium text-muted-foreground mb-1">{title}</p>
+        <p className="text-2xl font-bold text-primary">{count}</p>
+      </div>
+    </Card>;
+};
+
+// Monthly Stats Table Component
+const MonthlyStatsTable = ({
+  monthlyData
+}: {
+  monthlyData: Record<string, any>;
+}) => {
+  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const monthsFull = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  return <ScrollArea className="w-full">
+      <Table>
+        <TableHeader>
+          <TableRow className="gradient-header border-none hover:bg-transparent">
+            <TableHead className="text-white text-center font-semibold h-10">Mês</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">Sucesso</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">Parcial</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">Rollback</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">Cancelado</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">Não executado</TableHead>
+            <TableHead className="text-white text-center font-bold h-10">Total</TableHead>
+            <TableHead className="text-white text-center font-semibold h-10">% ✕</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {monthsFull.map((monthFull, index) => {
+          const data = monthlyData[monthFull] || {
+            success: 0,
+            partial: 0,
+            rollback: 0,
+            canceled: 0,
+            notExecuted: 0,
+            total: 0
+          };
+          const cancelPercentage = data.total > 0 ? (data.canceled / data.total * 100).toFixed(1) : '0.0';
+          return <TableRow key={monthFull} className="hover:bg-purple-50/50 transition-colors border-border/30">
+                <TableCell className="text-left font-medium py-1.5 px-3">{months[index]}</TableCell>
+                <TableCell className="text-center py-1.5 px-3">{data.success}</TableCell>
+                <TableCell className="text-center py-1.5 px-3">{data.partial}</TableCell>
+                <TableCell className="text-center py-1.5 px-3">{data.rollback}</TableCell>
+                <TableCell className="text-center py-1.5 px-3">{data.canceled}</TableCell>
+                <TableCell className="text-center py-1.5 px-3">{data.notExecuted}</TableCell>
+                <TableCell className="text-center font-bold py-1.5 px-3 bg-purple-50/30">{data.total}</TableCell>
+                <TableCell className="text-center py-1.5 px-3">{cancelPercentage}%</TableCell>
+              </TableRow>;
+        })}
+        </TableBody>
+      </Table>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>;
+};
 
 const AtividadesEngenharia = () => {
   const navigate = useNavigate();
@@ -22,13 +106,15 @@ const AtividadesEngenharia = () => {
   const itemsPerPage = 50;
 
   const filteredActivities = useMemo(() => {
-    if (!startDate || !endDate) return engineeringActivities;
+    if (!startDate && !endDate) return engineeringActivities;
     
     return engineeringActivities.filter(activity => {
       const dateStr = activity['DATA/HORA INÍCIO'];
       const [day, month, year] = dateStr.split('/').map(Number);
       const activityDate = new Date(year, month - 1, day);
-      return activityDate >= startDate && activityDate <= endDate;
+      if (startDate && activityDate < startDate) return false;
+      if (endDate && activityDate > endDate) return false;
+      return true;
     });
   }, [engineeringActivities, startDate, endDate]);
 
@@ -46,51 +132,47 @@ const AtividadesEngenharia = () => {
     return { total, vsa, rws, rdv, scdn, outrasConfig, participacao };
   }, [filteredActivities]);
 
-  // Calculate detailed monthly stats
-  const monthlyStats = useMemo(() => {
-    const stats: Record<string, any> = {};
-    
-    filteredActivities.forEach(activity => {
-      const month = String(activity['MÊS']);
-      const year = String(activity['ANO']);
-      const key = `${year}-${month.padStart(2, '0')}`;
-      
-      if (!stats[key]) {
-        stats[key] = {
-          year: parseInt(year),
-          month: parseInt(month),
-          success: 0,
-          partial: 0,
-          rollback: 0,
-          canceled: 0,
-          notExecuted: 0,
-          total: 0
-        };
-      }
-      
-      stats[key].total++;
-      const status = activity.STATUS?.toUpperCase() || '';
-      
-      if (status.includes('SUCESSO')) stats[key].success++;
-      else if (status.includes('PARCIAL')) stats[key].partial++;
-      else if (status.includes('ROLLBACK')) stats[key].rollback++;
-      else if (status.includes('CANCELAD')) stats[key].canceled++;
-      else if (status.includes('NÃO EXECUTAD')) stats[key].notExecuted++;
+  // Calculate monthly data for table
+  const filteredStats = useMemo(() => {
+    const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const monthlyData: Record<string, any> = {};
+    months.forEach(month => {
+      monthlyData[month] = {
+        success: 0,
+        partial: 0,
+        rollback: 0,
+        canceled: 0,
+        notExecuted: 0,
+        total: 0
+      };
     });
 
-    return Object.entries(stats)
-      .map(([key, data]) => {
-        const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-        return {
-          ...data,
-          key,
-          monthName: monthNames[data.month - 1],
-          fullMonthName: `${monthNames[data.month - 1]}/${String(data.year).slice(2)}`,
-          cancelPercentage: data.total > 0 ? Math.round((data.canceled / data.total) * 100) : 0
-        };
-      })
-      .sort((a, b) => a.key.localeCompare(b.key));
+    filteredActivities.forEach(activity => {
+      const month = activity['MÊS'];
+      const monthName = months[month - 1];
+      if (!monthlyData[monthName]) return;
+      
+      monthlyData[monthName].total++;
+      const status = activity.STATUS?.toUpperCase() || '';
+      
+      if (status.includes('SUCESSO')) monthlyData[monthName].success++;
+      else if (status.includes('PARCIAL')) monthlyData[monthName].partial++;
+      else if (status.includes('ROLLBACK')) monthlyData[monthName].rollback++;
+      else if (status.includes('CANCELAD')) monthlyData[monthName].canceled++;
+      else if (status.includes('NÃO EXECUTAD')) monthlyData[monthName].notExecuted++;
+    });
+
+    return { monthlyData };
   }, [filteredActivities]);
+
+  // Prepare chart data
+  const chartData = Object.entries(filteredStats.monthlyData).map(([month, data]) => {
+    return {
+      month: month.substring(0, 3),
+      total: data.total,
+      canceled: data.canceled
+    };
+  });
 
   // Get rollback activities
   const rollbackActivities = useMemo(() => {
@@ -100,250 +182,119 @@ const AtividadesEngenharia = () => {
   }, [filteredActivities]);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="gradient-header text-white py-6 px-6 shadow-elevated">
-        <div className="container mx-auto flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/")}
-            className="text-white hover:bg-white/20"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">ATIVIDADES ENGENHARIA</h1>
-            <p className="text-white/90 text-sm mt-1">Análise completa das atividades da área de Engenharia</p>
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-white">
+      {/* Main Header */}
+      <header className="gradient-header text-white py-4 px-6 shadow-lg">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="text-white hover:bg-white/20">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <h1 className="text-2xl font-bold">
+                Portal Atividades Programadas – (ENGENHARIA)
+              </h1>
+            </div>
+            <LiveClock />
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8">
-        {/* Date Filter Section */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Filtrar por Período</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">Data Inicial</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "justify-start text-left font-normal",
-                        !startDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP", { locale: ptBR }) : "Selecione a data"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+      {/* Subtitle Bar */}
+      <div className="bg-purple-500 text-white py-2 px-6">
+        <div className="container mx-auto">
+          
+        </div>
+      </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">Data Final</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "justify-start text-left font-normal",
-                        !endDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP", { locale: ptBR }) : "Selecione a data"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+      <main className="container mx-auto px-6 py-6">
+        {/* Date Filter */}
+        <Card className="p-6 shadow-card mb-6">
+          <div className="flex items-center gap-4 mb-4">
+            <Filter className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Filtrar por Período</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Data Início</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
             </div>
-          </CardContent>
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Data Fim</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+          {(startDate || endDate) && <Button variant="outline" size="sm" onClick={() => {
+            setStartDate(undefined);
+            setEndDate(undefined);
+          }} className="mt-4">
+              Limpar Filtros
+            </Button>}
         </Card>
 
-        {/* Category Cards */}
+        {/* Equipment Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
-          <Card className="bg-purple-50 border-purple-200">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-sm text-purple-600 font-medium mb-1">Engenharia TV</p>
-                <p className="text-3xl font-bold text-purple-900">{categoryStats.total}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-purple-50 border-purple-200">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-sm text-purple-600 font-medium mb-1">VSA</p>
-                <p className="text-3xl font-bold text-purple-900">{categoryStats.vsa}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-purple-50 border-purple-200">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-sm text-purple-600 font-medium mb-1">RWs</p>
-                <p className="text-3xl font-bold text-purple-900">{categoryStats.rws}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-purple-50 border-purple-200">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-sm text-purple-600 font-medium mb-1">RDV</p>
-                <p className="text-3xl font-bold text-purple-900">{categoryStats.rdv}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-purple-50 border-purple-200">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-sm text-purple-600 font-medium mb-1">SCDN</p>
-                <p className="text-3xl font-bold text-purple-900">{categoryStats.scdn}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-purple-50 border-purple-200">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-sm text-purple-600 font-medium mb-1">Outras Config</p>
-                <p className="text-3xl font-bold text-purple-900">{categoryStats.outrasConfig}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-purple-50 border-purple-200">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-sm text-purple-600 font-medium mb-1">Participação</p>
-                <p className="text-3xl font-bold text-purple-900">{categoryStats.participacao.toFixed(2)}%</p>
-              </div>
-            </CardContent>
-          </Card>
+          <EquipmentCard title="Engenharia TV" count={categoryStats.total} />
+          <EquipmentCard title="VSA" count={categoryStats.vsa} />
+          <EquipmentCard title="RWs" count={categoryStats.rws} />
+          <EquipmentCard title="RDV" count={categoryStats.rdv} />
+          <EquipmentCard title="SCDN" count={categoryStats.scdn} />
+          <EquipmentCard title="Outras Config." count={categoryStats.outrasConfig} />
+          <EquipmentCard title="Participação" count={`${categoryStats.participacao.toFixed(2)}%`} />
         </div>
 
-        {/* Chart and Table Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Monthly Activity Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Total Executado e % Cancelado</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <ComposedChart data={monthlyStats} barGap={0} barCategoryGap={20}>
-                  <XAxis 
-                    dataKey="monthName" 
-                    stroke="#6b7280" 
-                    style={{ fontSize: '12px' }} 
-                  />
-                  <YAxis yAxisId="left" hide={true} />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      fontSize: '12px'
-                    }}
-                  />
-                  <Legend 
-                    wrapperStyle={{ fontSize: '12px' }} 
-                  />
-                  <Bar 
-                    yAxisId="left" 
-                    dataKey="total" 
-                    fill="#660099" 
-                    name="Total" 
-                    radius={[8, 8, 0, 0]}
-                  >
-                    <LabelList 
-                      dataKey="total" 
-                      position="center" 
-                      fill="white" 
-                      fontSize={12} 
-                      fontWeight="bold" 
-                      formatter={(value: number) => value > 0 ? value : ''} 
-                    />
-                  </Bar>
-                  <Line 
-                    yAxisId="left" 
-                    type="monotone" 
-                    dataKey="canceled" 
-                    stroke="#F59E0B" 
-                    strokeWidth={2}
-                    name="Canceladas"
-                    dot={{ fill: '#F59E0B', r: 4 }}
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </CardContent>
+        {/* Stacked Layout - Full Width */}
+        <div className="space-y-6 mb-6">
+          {/* Chart - Full Width */}
+          <Card className="p-6 shadow-card">
+            <h2 className="text-lg font-bold text-purple-800 mb-4">
+              Total de Atividades e Cancelamentos - Engenharia
+            </h2>
+            <ResponsiveContainer width="100%" height={400}>
+              <ComposedChart data={chartData} barGap={0} barCategoryGap={20}>
+                <XAxis dataKey="month" stroke="#6b7280" style={{ fontSize: '12px' }} />
+                <YAxis yAxisId="left" hide={true} />
+                <Tooltip contentStyle={{
+                  backgroundColor: "white",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  fontSize: '12px'
+                }} />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Bar yAxisId="left" dataKey="total" fill="#660099" name="Total" radius={[8, 8, 0, 0]}>
+                  <LabelList dataKey="total" position="center" fill="white" fontSize={12} fontWeight="bold" formatter={(value: number) => value > 0 ? value : ''} />
+                </Bar>
+                <Line yAxisId="left" type="monotone" dataKey="canceled" stroke="#F59E0B" strokeWidth={2} name="Canceladas" dot={{ fill: '#F59E0B', r: 4 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
           </Card>
 
-          {/* Monthly Stats Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Estatísticas Mensais</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="max-h-[400px] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Mês</TableHead>
-                      <TableHead className="text-center">Sucesso</TableHead>
-                      <TableHead className="text-center">Parcial</TableHead>
-                      <TableHead className="text-center">Rollback</TableHead>
-                      <TableHead className="text-center bg-yellow-50">% Cancel</TableHead>
-                      <TableHead className="text-center">Não Exec</TableHead>
-                      <TableHead className="text-center font-bold">Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {monthlyStats.map((stat) => (
-                      <TableRow key={stat.key}>
-                        <TableCell className="font-medium">{stat.fullMonthName}</TableCell>
-                        <TableCell className="text-center text-green-700">{stat.success}</TableCell>
-                        <TableCell className="text-center text-yellow-700">{stat.partial}</TableCell>
-                        <TableCell className="text-center text-yellow-700">{stat.rollback}</TableCell>
-                        <TableCell className="text-center bg-yellow-50 font-bold text-yellow-900">
-                          {stat.cancelPercentage}%
-                        </TableCell>
-                        <TableCell className="text-center text-yellow-700">{stat.notExecuted}</TableCell>
-                        <TableCell className="text-center font-bold">{stat.total}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
+          {/* Table - Full Width */}
+          <Card className="p-6 shadow-card">
+            <h2 className="text-lg font-bold text-purple-800 mb-4">
+              Estatísticas Mensais
+            </h2>
+            <MonthlyStatsTable monthlyData={filteredStats.monthlyData} />
           </Card>
         </div>
 
@@ -379,7 +330,7 @@ const AtividadesEngenharia = () => {
           </Card>
         )}
 
-        {/* Activities Table with Pagination */}
+        {/* Detalhes das Atividades */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Detalhes das Atividades</CardTitle>
@@ -415,7 +366,7 @@ const AtividadesEngenharia = () => {
                       return (
                         <tr key={index} className="border-b hover:bg-gray-50">
                           <td className="py-2 px-4">{activity['DATA/HORA INÍCIO']}</td>
-                          <td className="py-2 px-4">{activity['Executor da Atividade']}</td>
+                          <td className="py-2 px-4">{activity['Executor da Atividade'] || '-'}</td>
                           <td className="py-2 px-4 max-w-md truncate">{activity.EVENTO}</td>
                           <td className="py-2 px-4">{activity.SEVERIDADE}</td>
                           <td className="py-2 px-4">
@@ -448,14 +399,12 @@ const AtividadesEngenharia = () => {
                       const totalPages = Math.ceil(filteredActivities.length / itemsPerPage);
                       if (totalPages <= 7) return true;
                       if (page === 1 || page === totalPages) return true;
-                      if (Math.abs(page - currentPage) <= 1) return true;
+                      if (Math.abs(page - currentPage) <= 2) return true;
                       return false;
                     })
-                    .map((page, index, array) => (
+                    .map((page, idx, arr) => (
                       <span key={page}>
-                        {index > 0 && array[index - 1] !== page - 1 && (
-                          <span className="px-2 text-muted-foreground">...</span>
-                        )}
+                        {idx > 0 && arr[idx - 1] !== page - 1 && <span className="px-1">...</span>}
                         <Button
                           variant={currentPage === page ? "default" : "outline"}
                           size="sm"
